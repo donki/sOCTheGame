@@ -1,0 +1,42 @@
+; Engine configuration file.
+; sOC the Game — ARPG urbano (Godot 4)
+; Editado manualmente pero compatible con el editor de Godot 4.3+.
+
+config_version=5
+
+[application]
+
+config/name="sOC"
+config/description="Novela visual de misterio urbano: dialogos entre personajes y mapa de la ciudad."
+config/version="0.3.3"
+run/main_scene="res://scenes/SplashIntro.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.02, 0.03, 0.05, 1)
+
+[autoload]
+
+Global="*res://scripts/Global.gd"
+Music="*res://scripts/Music.gd"
+
+[gui]
+
+theme/custom_font="res://assets/fonts/Kenney Future.ttf"
+
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation="landscape"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.02, 0.03, 0.05, 1)
+2d/snap/snap_2d_transforms_to_pixel=false

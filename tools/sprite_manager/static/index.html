@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpriteManager · sOC the Game</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>SpriteManager <span>· sOC the Game</span></h1>
+  <div class="folders" id="folders"></div>
+</header>
+
+<main>
+  <section id="gallery" class="gallery"></section>
+
+  <section class="editor">
+    <div class="preview">
+      <div class="checker" id="previewWrap">
+        <canvas id="editCanvas"></canvas>
+      </div>
+      <div class="pvname" id="pvname">— selecciona un sprite —</div>
+      <div class="zoomrow">
+        Zoom <input type="range" id="zoom" min="1" max="12" value="6">
+        <label><input type="checkbox" id="eraseMode"> Goma</label>
+        <label>Pincel <input type="range" id="brush" min="1" max="12" value="3"></label>
+        <button id="undo" title="Deshacer (Ctrl+Z)">↶ Deshacer</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <details open>
+      <summary>Manual</summary>
+      <div class="ops">
+        <button data-op="autotrim">Auto-recortar margen</button>
+        <button data-op="defringe">Defringe (borde claro)</button>
+        <div class="row"><label>Recortar lados T/B/L/R</label>
+          <input type="number" id="tT" value="0" min="0" style="width:44px">
+          <input type="number" id="tB" value="0" min="0" style="width:44px">
+          <input type="number" id="tL" value="0" min="0" style="width:44px">
+          <input type="number" id="tR" value="0" min="0" style="width:44px">
+          <button data-op="trim">Aplicar</button>
+        </div>
+        <div class="row"><label>Quitar fondo v/sat</label>
+          <input type="range" id="bgv" min="0.4" max="0.9" step="0.02" value="0.66">
+          <input type="range" id="bgsat" min="0.05" max="0.4" step="0.02" value="0.16">
+          <button data-op="removebg">Aplicar</button>
+        </div>
+        <div class="row"><label>Color-key tol</label>
+          <input type="range" id="cktol" min="10" max="80" step="2" value="34">
+          <button data-op="colorkey">Aplicar</button>
+        </div>
+        <div class="rowbtns">
+          <button data-op="flip">Voltear H</button>
+          <button id="saveErase" class="primary">Guardar goma</button>
+          <button id="reload">Recargar</button>
+          <button id="delFrame" class="danger">Borrar frame</button>
+        </div>
+        <div class="row"><label>Guardar como (carpeta / nombre)</label></div>
+        <div class="row">
+          <input id="saveFolder" placeholder="carpeta" style="width:120px">
+          <input id="saveName" placeholder="nombre" style="width:100px">
+          <button id="saveAs" class="primary">Guardar / Reemplazar</button>
+        </div>
+        <div class="mini" id="saveAsHint">Guarda el frame actual en esa ruta (sobrescribe si existe). Para sustituir un original, pon su carpeta y nombre.</div>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Generar NPC (IA · NVIDIA FLUX)</summary>
+      <div class="ops">
+        <select id="npcPreset"></select>
+        <textarea id="npcPrompt" placeholder="Prompt de imagen (inglés)…"></textarea>
+        <div class="row"><label>Archivo</label>
+          <input id="npcName" value="npc_emilio" style="width:130px"></div>
+        <div class="row"><label>Tamaño / pasos</label>
+          <input type="number" id="npcSize" value="1024" style="width:60px">
+          <input type="number" id="npcSteps" value="4" style="width:44px"></div>
+        <button id="npcGen" class="primary">Generar imagen</button>
+        <div class="mini" id="npcStatus">Genera en tu PC vía NVIDIA (~30-60 s la 1ª vez). Luego ábrela en «Cortar hoja».</div>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Cortar hoja (ratón)</summary>
+      <div class="ops">
+        <select id="cutSheet"></select>
+        <button id="cutOpen" class="primary">Detectar y ajustar</button>
+        <div class="mini">Auto-detecta cajas sobre la hoja; muévelas/redimensiónalas
+          con el ratón, renómbralas y exporta cada frame.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Automático (re-recortar hoja)</summary>
+      <div class="ops">
+        <select id="sheetSel"></select>
+        <div class="row"><label>Defringe pasadas</label>
+          <input type="number" id="apDefringe" value="2" min="0" max="4" style="width:44px"></div>
+        <div class="row"><label>BG v / sat</label>
+          <input type="range" id="apBgv" min="0.4" max="0.9" step="0.02" value="0.66">
+          <input type="range" id="apBgsat" min="0.05" max="0.4" step="0.02" value="0.16"></div>
+        <div class="row"><label>Blob min w/h · tol</label>
+          <input type="number" id="apMinW" value="40" style="width:48px">
+          <input type="number" id="apMinH" value="40" style="width:48px">
+          <input type="number" id="apTol" value="34" style="width:48px"></div>
+        <button id="runSlice" class="primary">Re-recortar hoja</button>
+        <button id="cleanTiles" class="danger">Borrar tile_*.png</button>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Asistente IA (NVIDIA)</summary>
+      <div class="assistant">
+        <div id="chat" class="chat"></div>
+        <textarea id="prompt" placeholder="Pregunta o describe el problema..."></textarea>
+        <div class="rowbtns">
+          <label class="mini"><input type="checkbox" id="withImage" checked> incluir frame actual</label>
+          <button id="ask" class="primary">Preguntar</button>
+        </div>
+      </div>
+    </details>
+  </aside>
+</main>
+
+<!-- Overlay de recorte manual (ratón) -->
+<div id="cutter" class="cutter hidden">
+  <div class="cutbar">
+    <strong>Cortar: <span id="cutTitle">—</span></strong>
+    <span class="cutcount" id="cutCount">0 cajas</span>
+    <button id="cutAdd">＋ Caja</button>
+    <button id="cutToEditor">→ Editor</button>
+    <button id="cutDel" class="danger">✕ Borrar sel.</button>
+    <button id="cutRedetect">Auto-detectar</button>
+    <label>Zoom <input id="cutZoom" type="range" min="0.3" max="3" step="0.1" value="1"></label>
+    <span class="grow"></span>
+    <label>Salida <input id="cutOut" value="detective_frames"></label>
+    <label>Prefijo <input id="cutPrefix" value="det_"></label>
+    <label class="mini"><input type="checkbox" id="cutRmbg" checked> quitar fondo</label>
+    <label class="mini"><input type="checkbox" id="cutTrim" checked> recortar</label>
+    <label class="mini">celda <input id="cutCW" type="number" value="0" title="0 = sin celda"> ×
+      <input id="cutCH" type="number" value="0"></label>
+    <button id="cutExport" class="primary">Exportar frames</button>
+    <button id="cutClose">Cerrar</button>
+  </div>
+  <div class="cuthint" id="cutHint"><b>Arrastra sobre zona vacía para dibujar una caja nueva.</b> Arrastra el interior para mover · tiradores para redimensionar · doble-clic para renombrar · <b>F</b> voltear · <b>Supr</b> borra · <b>→ Editor</b> manda el recorte al editor para ajustarlo.</div>
+  <div class="cutstage" id="cutStage">
+    <div class="cutcanvas-wrap" id="cutWrap">
+      <canvas id="cutCanvas"></canvas>
+      <div id="cutBoxes"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

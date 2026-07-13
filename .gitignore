@@ -1,0 +1,27 @@
+# Godot 4 — importación / caché
+.godot/
+
+# Builds y exportaciones
+/build/
+/exports/
+*.exe
+*.apk
+*.aab
+
+# Arte generado por IA (se regenera con tools/gen_assets.py; ver README y CREDITS.md)
+/assets/backgrounds/
+/assets/portraits/
+
+# Backups de trabajo
+/assets/_backup_*/
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Config/memoria del agente (no es del juego)
+.claude/
