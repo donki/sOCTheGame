@@ -1138,8 +1138,16 @@ descarga y **mucha menos RAM/VRAM** en móviles de gama baja de los testers. Win
 Verificado además que `build/sOC.exe` **arranca en runtime** (no solo exporta): la opción Lossy funciona.
 Tooling verificado: plantillas 4.7, SDK Android, keystore debug y `editor_settings-4.7.tres`.
 
+**GitHub (2026-07-13).** Repo inicializado y subido a **https://github.com/donki/sOCTheGame** (rama
+`main`, commit inicial). Se añadió **README** (acorde al estado real: 20 casos + tutorial, anime,
+Godot 4.7, scripts de build) y **LICENSE MIT** (código; assets Kenney CC0; ver CREDITS). Decisión: el
+`.gitignore` excluye `build/`, `.godot/`, `.claude/`, backups y **el arte generado por IA**
+(`assets/backgrounds/`, `assets/portraits/`) — por peso y por licencia ambigua del servicio de
+generación; se regenera con `tools/gen_assets.py`. Repo resultante: **541 ficheros, ~4 MB** (código +
+prompts + tooling + assets pequeños Kenney/UI/i18n + docs). `git` ya autenticado como `donki` (GCM).
+
 **Pendiente:** validar los builds en dispositivo real (Windows OK; falta un Android físico); reabrir
-OneDrive cuando el usuario quiera.
+OneDrive cuando el usuario quiera; si se quiere, subir el arte al repo (o a releases/LFS) aparte.
 
 ---
 *Fin del documento. Recordatorio: actualizar secciones 5–7 y añadir entrada en la

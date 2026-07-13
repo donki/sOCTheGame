@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 donki (sOC the Game)
+Copyright (c) 2026 donki
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Nota sobre licencias de terceros / Third-party notice:
-
-Esta licencia MIT cubre el CÓDIGO del proyecto. Los recursos de terceros
-mantienen su propia licencia (ver CREDITS.md): las fuentes y el audio de Kenney
-son CC0 1.0. El arte generado por IA (retratos y fondos, vía Pollinations/Flux)
-NO se distribuye en este repositorio; se regenera con tools/gen_assets.py a
-partir de los prompts. Verifica los términos del servicio de generación antes de
-cualquier distribución comercial del arte.
