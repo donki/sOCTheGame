@@ -1505,6 +1505,20 @@ reactivado: un blip cada 3 caracteres al escribir (salta espacios; el narrador n
 
 **Build:** `pwsh tools/build.ps1` → `build/sOC.exe` **v2026.07.14.2** (162 MB). `build/` está gitignorado.
 
+### 2026-07-14 (cont.) — Voces por TTS real del sistema (Godot DisplayServer)
+
+Los blips sintetizados (aun con formantes) seguían sonando a pitido. A petición del usuario se pasa a
+**TTS real** con `DisplayServer.tts_*` (Windows SAPI / Android TTS), habilitado con
+`audio/general/text_to_speech=true` en `project.godot`. `Global._init_tts` recopila las voces del sistema
+y las **clasifica por género** (marcadores en el nombre: Helena/Laura/Zira… = femenina), **prefiriendo las
+de español**. `Global.speak_line(who, text)` lee cada línea con la voz del personaje: elige voz por género
+(set `VOICE_FEMALE` + tono `VOICE_PITCH`) y varía tono/velocidad de forma estable por el nombre; `interrupt`
+corta la línea anterior. `DialogueScene` llama a `speak_line` al mostrar cada línea y a `stop_speaking` al
+cerrar; los **blips quedan como fallback** solo si NO hay TTS (`_emit_blips` retorna si `tts_available`).
+El narrador no se lee. `voices_enabled` sigue disponible para silenciar. Verificado en la máquina de dev:
+6 voces (3 español: Pablo ♂, Helena ♀, Laura ♀); Núñez→Pablo grave, Rosa/Nora→Helena, etc. En equipos sin
+TTS o sin voz española, cae con elegancia (otra voz o blips).
+
 ---
 *Fin del documento. Recordatorio: actualizar secciones 5–7 y añadir entrada en la
 Bitácora en cada avance.*

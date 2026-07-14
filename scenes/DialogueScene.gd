@@ -464,6 +464,7 @@ func _start_typing(text: String) -> void:
 	_typing = true
 	_hint.visible = false
 	Global.play_sfx(Global.SFX_NOTE, -8.0)
+	Global.speak_line(_who, _full)   # TTS: lee la línea con la voz del personaje
 
 
 func _process(delta: float) -> void:
@@ -487,7 +488,8 @@ func _process(delta: float) -> void:
 ## puntuación), con el tono del hablante actual. Barato y no cansa.
 func _emit_blips(from: int, to: int) -> void:
 	# Voz por personaje: un blip cada 3 caracteres revelados (saltando espacios).
-	if _who == "narrador":
+	# Si hay TTS real, las líneas se LEEN (speak_line) y no hacen falta blips.
+	if Global.tts_available or _who == "narrador":
 		return
 	for i in range(from, to):
 		if i % 3 != 0:
@@ -701,6 +703,7 @@ func _apply_nameplate_border(color: Color) -> void:
 #  FIN
 # ---------------------------------------------------------------------------
 func _finish() -> void:
+	Global.stop_speaking()   # corta cualquier voz TTS en curso
 	var result := {"clue": null, "flag": "", "false_count": 0}
 	if _dialogue.has("clue"):
 		var cl: Dictionary = _dialogue.clue

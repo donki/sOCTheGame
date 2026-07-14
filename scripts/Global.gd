@@ -93,6 +93,17 @@ var _voice_pool: Array = []
 var _voice_idx := 0
 var _voice_cache: Dictionary = {}
 var voices_enabled := true
+
+# --- TTS real (voces del sistema: Windows SAPI / Android TTS) ---
+# Si hay TTS disponible, las líneas de diálogo se LEEN con una voz distinta por
+# personaje (voz del sistema por género + tono + velocidad propios). Reemplaza a los blips.
+var tts_available := false
+var _tts_all: Array = []         # todas las voces disponibles (fallback)
+var _tts_male: Array = []        # voces masculinas (español si las hay)
+var _tts_female: Array = []      # voces femeninas
+# Personajes con voz femenina (el resto = masculina). El tono fino lo da VOICE_PITCH.
+const VOICE_FEMALE := ["detective", "rosa", "carmen", "marta", "laura", "clara", "sonia",
+	"adler", "madame", "periodista", "testigo", "anonimo"]
 # Tono base por personaje (1.0 = timbre base ~1150 Hz). Graves los hombres mayores,
 # agudos las voces jóvenes/femeninas. Los que falten usan un tono estable por hash.
 const VOICE_PITCH := {
@@ -179,6 +190,7 @@ func _ready() -> void:
 	_build_fade_layer()
 	_build_sfx()
 	_build_voice()
+	_init_tts()
 	font_title = load(FONT_TITLE_PATH)
 	font_accent = load(FONT_ACCENT_PATH)
 	_setup_cjk_fallback()
@@ -276,36 +288,62 @@ func _voice_pitch(who: String) -> float:
 	return 0.80 + float(abs(who.hash()) % 60) / 100.0       # 0.80..1.39 estable por personaje
 
 
-## Parámetros de voz por personaje: [f0 Hz, ratio formante (color vocal), zumbido 0..1, caída].
-## El tono base viene de VOICE_PITCH (curado); el timbre se deriva estable del nombre.
+# Vocales por formantes (F1,F2 en Hz). Cada personaje habla en una vocal distinta.
+const VOWELS := [
+	[720.0, 1240.0],   # /a/
+	[530.0, 1840.0],   # /e/
+	[390.0, 2300.0],   # /i/
+	[490.0, 900.0],    # /o/
+	[350.0, 760.0],    # /u/
+	[620.0, 1500.0],   # /ae/
+]
+
+## Parámetros de voz por personaje: [f0 Hz (fundamental GRAVE de voz), F1, F2, caída, glissando].
+## f0 sale del tono curado (VOICE_PITCH) mapeado a rango de voz humana; la vocal y el resto,
+## estables por el nombre. La clave para que suene a voz (no a pitido) es f0 bajo + formantes.
 func _voice_params(who: String) -> Array:
-	var f0: float = 640.0 * _voice_pitch(who)               # ~460..830 Hz (voz, no chirrido)
+	var f0: float = clampf(150.0 * _voice_pitch(who), 82.0, 245.0)   # ~100 (hombre) .. 240 (mujer)
 	var h: int = abs(who.hash())
-	var ratio: float = 2.0 + float(h % 5) * 0.45            # 2.00..3.80 (vocal /a/../i/)
-	var buzz: float = 0.12 + float((h / 5) % 5) * 0.08      # 0.12..0.44 (aspereza)
-	var decay: float = 26.0 + float((h / 25) % 7) * 4.0     # 26..50 (nervioso/calmado)
-	return [f0, ratio, buzz, decay]
+	var v: Array = VOWELS[h % VOWELS.size()]
+	var decay: float = 13.0 + float((h / 6) % 5) * 2.4               # 13..23 (sílaba corta)
+	var glide: float = (float((h / 30) % 5) - 2.0) * 0.05            # -0.10..+0.10 (entonación)
+	return [f0, v[0], v[1], decay, glide]
 
 
-## Sintetiza (y cachea) el blip de un personaje: seno fundamental + formante + algo de
-## onda cuadrada, con ataque corto y caída exponencial. Suena a voz, no a pitido.
+## Sintetiza (y cachea) el blip de un personaje por FORMANTES: fuente glótica (diente de
+## sierra rica en armónicos) a f0 grave, filtrada por dos resonadores (F1, F2) que dan el
+## color de vocal, con ataque suave, caída y un leve glissando. Suena a sílaba, no a pitido.
 func _blip_for(who: String) -> AudioStreamWAV:
 	if _voice_cache.has(who):
 		return _voice_cache[who]
 	var pr := _voice_params(who)
-	var f0: float = pr[0]; var ratio: float = pr[1]; var buzz: float = pr[2]; var decay: float = pr[3]
+	var f0: float = pr[0]; var f1: float = pr[1]; var f2: float = pr[2]
+	var decay: float = pr[3]; var glide: float = pr[4]
 	var rate := 22050
-	var n := int(0.070 * rate)
+	var dur := 0.11
+	var n := int(dur * rate)
+	# Resonadores de 2 polos (uno por formante). r cerca de 1 = resonancia estrecha.
+	var r1: float = exp(-PI * 110.0 / rate); var c1: float = 2.0 * r1 * cos(TAU * f1 / rate)
+	var r2: float = exp(-PI * 130.0 / rate); var c2: float = 2.0 * r2 * cos(TAU * f2 / rate)
+	var y1a := 0.0; var y1b := 0.0; var y2a := 0.0; var y2b := 0.0
+	var phase := 0.0
 	var data := PackedByteArray()
 	data.resize(n * 2)
 	for i in n:
 		var t := float(i) / rate
-		var env: float = minf(1.0, t / 0.004) * exp(-t * decay)      # ataque 4ms + caída
-		var ph: float = fmod(t * f0, 1.0)
-		var sq: float = 1.0 if ph < 0.5 else -1.0
-		var fund: float = (1.0 - buzz) * sin(TAU * f0 * t) + buzz * sq
-		var form: float = 0.5 * sin(TAU * f0 * ratio * t)            # formante = color vocal
-		var val: float = (fund + form) * env * 0.42
+		var f := f0 * (1.0 + glide * (t / dur))          # entonación (glissando)
+		phase += f / rate
+		if phase >= 1.0:
+			phase -= 1.0
+		var src: float = 2.0 * phase - 1.0               # diente de sierra (glotis)
+		# F1
+		var o1: float = (1.0 - r1) * src + c1 * y1a - r1 * r1 * y1b
+		y1b = y1a; y1a = o1
+		# F2
+		var o2: float = (1.0 - r2) * src + c2 * y2a - r2 * r2 * y2b
+		y2b = y2a; y2a = o2
+		var env: float = minf(1.0, t / 0.008) * exp(-t * decay)   # ataque 8ms + caída
+		var val: float = (0.85 * o1 + 0.55 * o2 + 0.10 * src) * env * 0.9
 		data.encode_s16(i * 2, int(clampf(val, -1.0, 1.0) * 32767.0))
 	var wav := AudioStreamWAV.new()
 	wav.format = AudioStreamWAV.FORMAT_16_BITS
@@ -325,6 +363,71 @@ func play_voice(who: String) -> void:
 	p.pitch_scale = 1.0 + randf_range(-0.04, 0.04)          # micro-variación viva
 	p.volume_db = -13.0
 	p.play()
+
+
+# --- TTS ---------------------------------------------------------------------
+## Detecta el TTS del sistema y clasifica las voces por género (español preferente).
+func _init_tts() -> void:
+	if not DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
+		return
+	var voices: Array = DisplayServer.tts_get_voices()      # [{id,name,language}, ...]
+	var fem_markers := ["helena", "laura", "zira", "sabina", "hazel", "eva", "elvira", "maria", "paulina", "monica"]
+	var es_m: Array = []; var es_f: Array = []; var any_m: Array = []; var any_f: Array = []
+	for v in voices:
+		var id := String((v as Dictionary).get("id", ""))
+		if id == "":
+			continue
+		_tts_all.append(id)
+		var nm := String((v as Dictionary).get("name", "")).to_lower()
+		var female := false
+		for m in fem_markers:
+			if nm.contains(m):
+				female = true
+				break
+		var es := String((v as Dictionary).get("language", "")).to_lower().begins_with("es")
+		if female:
+			any_f.append(id)
+			if es: es_f.append(id)
+		else:
+			any_m.append(id)
+			if es: es_m.append(id)
+	# Preferir voces en español si hay alguna.
+	if not es_m.is_empty() or not es_f.is_empty():
+		_tts_male = es_m; _tts_female = es_f
+	else:
+		_tts_male = any_m; _tts_female = any_f
+	tts_available = not _tts_all.is_empty()
+
+
+## Voz TTS por personaje: [voice_id, tono, velocidad]. Elige voz por GÉNERO (set
+## VOICE_FEMALE + tono), y varía tono/velocidad de forma estable por el nombre.
+func _tts_voice_for(who: String) -> Array:
+	var h: int = abs(who.hash())
+	var female: bool = who in VOICE_FEMALE or _voice_pitch(who) >= 1.18
+	var pool: Array = _tts_female if female else _tts_male
+	if pool.is_empty():
+		pool = _tts_male if not _tts_male.is_empty() else _tts_female
+	if pool.is_empty():
+		pool = _tts_all
+	var voice: String = pool[h % pool.size()] if not pool.is_empty() else ""
+	var pitch: float = clampf(_voice_pitch(who), 0.6, 1.8)
+	var rate: float = 0.90 + float((h / 7) % 6) * 0.05      # 0.90..1.15 velocidad propia
+	return [voice, pitch, rate]
+
+
+## Lee una línea con la voz del personaje (corta la anterior). El narrador no se lee.
+func speak_line(who: String, text: String) -> void:
+	if not tts_available or not voices_enabled or who == "" or who == "narrador":
+		return
+	if text.strip_edges() == "":
+		return
+	var vp := _tts_voice_for(who)
+	DisplayServer.tts_speak(text, String(vp[0]), 60, float(vp[1]), float(vp[2]), 0, true)
+
+
+func stop_speaking() -> void:
+	if tts_available:
+		DisplayServer.tts_stop()
 
 
 ## Registra acciones en runtime para no depender de la serializacion del
