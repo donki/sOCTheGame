@@ -1486,6 +1486,25 @@ tocando los objetos, que ahora coinciden con el target.
 **Verificado:** editor headless 0 errores; captura de `casa_marta` confirmando que el target cae sobre la
 taza de la mesita.
 
+### 2026-07-14 (cont.) — Versionado yyyy.MM.dd.N y VOCES por personaje (build v2026.07.14.2)
+
+**Versionado (ADR-025 rev.):** `config/version` pasa a **`yyyy.MM.dd.N`**. `tools/build.ps1` fija la fecha
+de hoy y **cada compilación incrementa N**; N se reinicia a 1 al cambiar el día. Migra solo desde el
+esquema antiguo `x.y.z`. `project.godot` migrado a `2026.07.14.1`; primer build del día → `2026.07.14.2`.
+
+**Voces por personaje (reactivadas y mejoradas).** El sistema de voice-blips estaba desactivado porque
+"sonaba mal" (un único blip cuadrado+seno pitcheado: todos sonaban igual, metálico). Rehecho en
+`Global.gd`: cada personaje tiene una **voz distinta de verdad** — no solo tono, sino **timbre propio**.
+`_voice_params(who)` deriva `[f0, ratio de formante (color vocal), zumbido, caída]` del tono curado
+(`VOICE_PITCH`) + hash estable del nombre; `_blip_for(who)` sintetiza y **cachea** un WAV por personaje
+(seno fundamental + formante + algo de cuadrada, con ataque 4 ms + caída exponencial → suena a voz, no a
+pitido). `play_voice` reproduce el blip del hablante con micro-variación de tono. `DialogueScene._emit_blips`
+reactivado: un blip cada 3 caracteres al escribir (salta espacios; el narrador no lleva voz). Flag
+`Global.voices_enabled` por si se quiere silenciar. Verificado: 10 personajes → 10 voces con checksum único
+(Núñez grave/áspero, Rosa aguda de anciana, Sonia la más aguda, Adler limpia...).
+
+**Build:** `pwsh tools/build.ps1` → `build/sOC.exe` **v2026.07.14.2** (162 MB). `build/` está gitignorado.
+
 ---
 *Fin del documento. Recordatorio: actualizar secciones 5–7 y añadir entrada en la
 Bitácora en cada avance.*

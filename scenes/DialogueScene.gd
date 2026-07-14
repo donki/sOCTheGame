@@ -485,8 +485,18 @@ func _process(delta: float) -> void:
 
 ## Reproduce un voice-blip cada 3 caracteres revelados (saltando espacios y
 ## puntuación), con el tono del hablante actual. Barato y no cansa.
-func _emit_blips(_from: int, _to: int) -> void:
-	pass   # voice-blips DESACTIVADOS a petición del usuario (sonaban mal)
+func _emit_blips(from: int, to: int) -> void:
+	# Voz por personaje: un blip cada 3 caracteres revelados (saltando espacios).
+	if _who == "narrador":
+		return
+	for i in range(from, to):
+		if i % 3 != 0:
+			continue
+		if i < _full.length():
+			var c := _full[i]
+			if c == " " or c == "\n" or c == "\t":
+				continue
+		Global.play_voice(_who)
 
 
 func _finish_typing() -> void:

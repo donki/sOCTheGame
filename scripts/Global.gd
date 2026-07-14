@@ -86,9 +86,13 @@ var _sfx_pool: Array = []
 var _sfx_idx := 0
 
 # --- Voice blips (voz estilizada por personaje, generativa, sin ficheros) ---
+# Cada personaje tiene una VOZ distinta: no solo tono, sino timbre propio (color
+# vocal por formante, cantidad de zumbido y velocidad de caída). Se sintetiza un
+# WAV por personaje la primera vez y se cachea.
 var _voice_pool: Array = []
 var _voice_idx := 0
-var _voice_blip: AudioStreamWAV = null
+var _voice_cache: Dictionary = {}
+var voices_enabled := true
 # Tono base por personaje (1.0 = timbre base ~1150 Hz). Graves los hombres mayores,
 # agudos las voces jóvenes/femeninas. Los que falten usan un tono estable por hash.
 const VOICE_PITCH := {
@@ -255,30 +259,12 @@ func play_footstep() -> void:
 
 
 # --- VOICE BLIPS -----------------------------------------------------------
-## Sintetiza UNA vez un blip corto (onda cuadrada+seno con caída rápida) y lo
-## reproduce por carácter con `pitch_scale` según el personaje. Estilo Ace
-## Attorney/Undertale: da voz sin sonar a TTS robótico y encaja con el audio
-## generativo del juego. El narrador no lleva blip.
+## Voz estilizada por personaje (estilo Ace Attorney/Undertale, sin TTS ni ficheros):
+## se reproduce un blip corto por cada pocos caracteres al escribir el diálogo. Cada
+## personaje suena DISTINTO porque su blip se sintetiza con parámetros propios
+## (tono base, color vocal por formante, zumbido y caída). El narrador no lleva voz.
 func _build_voice() -> void:
-	var rate := 22050
-	var secs := 0.055
-	var n := int(secs * rate)
-	var data := PackedByteArray()
-	data.resize(n * 2)
-	for i in n:
-		var t := float(i) / rate
-		var env: float = exp(-t * 40.0)                     # caída rápida
-		var ph: float = fmod(t * 1150.0, 1.0)               # ~1150 Hz
-		var sq: float = 1.0 if ph < 0.5 else -1.0
-		var val: float = (0.6 * sq + 0.4 * sin(TAU * 1150.0 * t)) * env * 0.5
-		data.encode_s16(i * 2, int(clampf(val, -1.0, 1.0) * 32767.0))
-	var wav := AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_16_BITS
-	wav.mix_rate = rate
-	wav.stereo = false
-	wav.data = data
-	_voice_blip = wav
-	for i in 4:
+	for i in 5:
 		var p := AudioStreamPlayer.new()
 		add_child(p)
 		_voice_pool.append(p)
@@ -290,14 +276,54 @@ func _voice_pitch(who: String) -> float:
 	return 0.80 + float(abs(who.hash()) % 60) / 100.0       # 0.80..1.39 estable por personaje
 
 
+## Parámetros de voz por personaje: [f0 Hz, ratio formante (color vocal), zumbido 0..1, caída].
+## El tono base viene de VOICE_PITCH (curado); el timbre se deriva estable del nombre.
+func _voice_params(who: String) -> Array:
+	var f0: float = 640.0 * _voice_pitch(who)               # ~460..830 Hz (voz, no chirrido)
+	var h: int = abs(who.hash())
+	var ratio: float = 2.0 + float(h % 5) * 0.45            # 2.00..3.80 (vocal /a/../i/)
+	var buzz: float = 0.12 + float((h / 5) % 5) * 0.08      # 0.12..0.44 (aspereza)
+	var decay: float = 26.0 + float((h / 25) % 7) * 4.0     # 26..50 (nervioso/calmado)
+	return [f0, ratio, buzz, decay]
+
+
+## Sintetiza (y cachea) el blip de un personaje: seno fundamental + formante + algo de
+## onda cuadrada, con ataque corto y caída exponencial. Suena a voz, no a pitido.
+func _blip_for(who: String) -> AudioStreamWAV:
+	if _voice_cache.has(who):
+		return _voice_cache[who]
+	var pr := _voice_params(who)
+	var f0: float = pr[0]; var ratio: float = pr[1]; var buzz: float = pr[2]; var decay: float = pr[3]
+	var rate := 22050
+	var n := int(0.070 * rate)
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	for i in n:
+		var t := float(i) / rate
+		var env: float = minf(1.0, t / 0.004) * exp(-t * decay)      # ataque 4ms + caída
+		var ph: float = fmod(t * f0, 1.0)
+		var sq: float = 1.0 if ph < 0.5 else -1.0
+		var fund: float = (1.0 - buzz) * sin(TAU * f0 * t) + buzz * sq
+		var form: float = 0.5 * sin(TAU * f0 * ratio * t)            # formante = color vocal
+		var val: float = (fund + form) * env * 0.42
+		data.encode_s16(i * 2, int(clampf(val, -1.0, 1.0) * 32767.0))
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = rate
+	wav.stereo = false
+	wav.data = data
+	_voice_cache[who] = wav
+	return wav
+
+
 func play_voice(who: String) -> void:
-	if _voice_blip == null or who == "" or who == "narrador":
+	if not voices_enabled or who == "" or who == "narrador" or _voice_pool.is_empty():
 		return
 	var p: AudioStreamPlayer = _voice_pool[_voice_idx]
 	_voice_idx = (_voice_idx + 1) % _voice_pool.size()
-	p.stream = _voice_blip
-	p.pitch_scale = clampf(_voice_pitch(who) + randf_range(-0.05, 0.05), 0.4, 2.0)
-	p.volume_db = -15.0
+	p.stream = _blip_for(who)
+	p.pitch_scale = 1.0 + randf_range(-0.04, 0.04)          # micro-variación viva
+	p.volume_db = -13.0
 	p.play()
 
 
