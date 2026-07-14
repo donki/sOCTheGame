@@ -104,6 +104,7 @@ const VOICE_PITCH := {
 var chapter: int = 1       # capítulo actual (1..3)
 var clues: Array = []      # [{title, text}]
 var flags: Dictionary = {} # banderas de progreso (done_emilio, cap1_completo, ...)
+var met_chars: Array = []  # claves CHARS de personajes conocidos (para el tablero dinámico)
 
 func add_clue(title: String, text: String, is_false: bool = false) -> bool:
 	for c in clues:
@@ -124,6 +125,15 @@ func reset_case() -> void:
 	chapter = 0          # nueva partida arranca en el Capítulo 0 (tutorial); done_cierre0 pasa al Caso 1
 	clues.clear()
 	flags.clear()
+	met_chars.clear()
+
+
+## Registra un personaje conocido (para el tablero dinámico). Ignora narrador/detective.
+func note_char(who: String) -> void:
+	if who == "" or who == "narrador" or who == "detective" or who in met_chars:
+		return
+	met_chars.append(who)
+	save_game()
 
 
 # --- Guardado del progreso del caso (capítulo + pistas + banderas) ---
@@ -131,7 +141,7 @@ func save_game() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		return
-	f.store_string(JSON.stringify({"chapter": chapter, "clues": clues, "flags": flags}))
+	f.store_string(JSON.stringify({"chapter": chapter, "clues": clues, "flags": flags, "met_chars": met_chars}))
 	f.close()
 
 
@@ -148,6 +158,10 @@ func load_game() -> bool:
 	chapter = int(data.get("chapter", 1))
 	clues = (data.get("clues", []) as Array)
 	flags = (data.get("flags", {}) as Dictionary)
+	met_chars = (data.get("met_chars", []) as Array)
+	# Salvaguarda: descarta claves de personaje que ya no existan (saves antiguos),
+	# para que el tablero dinámico nunca reciba una clave inválida.
+	met_chars = met_chars.filter(func(k): return Story.CHARS.has(String(k)))
 	return true
 
 

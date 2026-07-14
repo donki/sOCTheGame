@@ -241,7 +241,10 @@ func _build_center() -> void:
 	var tagline := Label.new()
 	tagline.text = Global.loc("La ciudad esconde algo bajo la lluvia.")
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	Global.style_tagline(tagline, 20)
+	Global.style_tagline(tagline, 33)
+	tagline.add_theme_color_override("font_color", Global.COL_WARM)
+	tagline.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	tagline.add_theme_constant_override("outline_size", 5)
 	center.add_child(tagline)
 
 	# Separacion antes de los botones

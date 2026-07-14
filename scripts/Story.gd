@@ -150,12 +150,13 @@ const BGS := {
 #   Carmen/4 pistas -> Iglesia ; caso cerrado -> Comisaría.
 # --- Capítulo 0: TUTORIAL (enseña el bucle de juego con un caso de prácticas) ---
 const CH0_LOCATIONS := [
-	{"id": "brief0",  "name": "Comisaría",           "sub": "Núñez te enseña el oficio",  "pos": Vector2(0.84, 0.44), "req": "always"},
-	{"id": "l0a",     "name": "Plaza del Barrio",    "sub": "Cómo se lee un escenario",   "pos": Vector2(0.50, 0.58), "req": "done_brief0"},
-	{"id": "rh0",     "name": "Callejón",            "sub": "Pistas falsas",              "pos": Vector2(0.36, 0.82), "req": "done_l0a", "red_herring": true},
-	{"id": "l0b",     "name": "Tienda de la esquina","sub": "Reunir las pistas",          "pos": Vector2(0.28, 0.70), "req": "done_l0a"},
-	{"id": "fin0",    "name": "Archivo",             "sub": "Cerrar el caso",             "pos": Vector2(0.62, 0.30), "req": "clues4"},
-	{"id": "cierre0", "name": "Comisaría",           "sub": "Informar y empezar de verdad","pos": Vector2(0.86, 0.24), "req": "cap0_completo"},
+	{"id": "brief0",  "name": "Comisaría",           "sub": "Núñez te enseña el oficio",   "pos": Vector2(0.84, 0.44), "req": "always"},
+	{"id": "l0a",     "name": "Plaza del Barrio",    "sub": "Buscar pistas (examinar)",    "pos": Vector2(0.50, 0.58), "req": "done_brief0"},
+	{"id": "rh0",     "name": "Callejón",            "sub": "Examinar un detalle (zoom)",  "pos": Vector2(0.34, 0.82), "req": "done_l0a"},
+	{"id": "l0b",     "name": "Tienda de la esquina","sub": "Mini-puzzle: el código",      "pos": Vector2(0.26, 0.66), "req": "done_rh0"},
+	{"id": "l0c",     "name": "Interrogatorio",      "sub": "Presentar la prueba",         "pos": Vector2(0.62, 0.44), "req": "clues4"},
+	{"id": "fin0",    "name": "Archivo",             "sub": "Deducción: cerrar el caso",   "pos": Vector2(0.64, 0.28), "req": "done_l0c"},
+	{"id": "cierre0", "name": "Comisaría",           "sub": "Informar y empezar de verdad","pos": Vector2(0.86, 0.22), "req": "cap0_completo"},
 ]
 const CH0_STREET := ["Leer el escenario", "Tirar del hilo"]
 
@@ -381,26 +382,26 @@ const CH20_STREET := ["La cúpula entera", "La prueba definitiva"]
 # Mapa de capítulos. end_flag = bandera cuya activación pasa al capítulo siguiente.
 const CHAPTERS := {
 	0: {"title": "Tutorial · Cómo se juega",            "locations": CH0_LOCATIONS, "street": CH0_STREET, "complete_flag": "cap0_completo", "end_flag": "done_cierre0"},
-	1: {"title": "Caso 1 · Desaparición en la iglesia", "locations": CH1_LOCATIONS, "street": CH1_STREET, "complete_flag": "cap1_completo", "end_flag": "done_comisaria"},
-	2: {"title": "Caso 2 · Las campanas que faltan",    "locations": CH2_LOCATIONS, "street": CH2_STREET, "complete_flag": "cap2_completo", "end_flag": "done_cierre2"},
-	3: {"title": "Caso 3 · El coleccionista",           "locations": CH3_LOCATIONS, "street": CH3_STREET, "complete_flag": "cap3_completo", "end_flag": "done_cierre3"},
-	4: {"title": "Caso 4 · El heredero",                "locations": CH4_LOCATIONS, "street": CH4_STREET, "complete_flag": "cap4_completo", "end_flag": "done_cierre4"},
-	5: {"title": "Caso 5 · La subasta",                 "locations": CH5_LOCATIONS, "street": CH5_STREET, "complete_flag": "cap5_completo", "end_flag": "done_cierre5"},
-	6: {"title": "Caso 6 · La cúspide",                 "locations": CH6_LOCATIONS, "street": CH6_STREET, "complete_flag": "cap6_completo", "end_flag": "done_cierre6"},
-	7: {"title": "Caso 7 · La receta",                  "locations": CH7_LOCATIONS, "street": CH7_STREET, "complete_flag": "cap7_completo", "end_flag": "done_cierre7"},
-	8: {"title": "Caso 8 · El hermano",                 "locations": CH8_LOCATIONS, "street": CH8_STREET, "complete_flag": "cap8_completo", "end_flag": "done_cierre8"},
-	9: {"title": "Caso 9 · La clínica fantasma",        "locations": CH9_LOCATIONS, "street": CH9_STREET, "complete_flag": "cap9_completo", "end_flag": "done_cierre9"},
-	10: {"title": "Caso 10 · El laboratorio",           "locations": CH10_LOCATIONS, "street": CH10_STREET, "complete_flag": "cap10_completo", "end_flag": "done_cierre10", "map": "res://assets/backgrounds/mapa_centro.png"},
-	11: {"title": "Caso 11 · El barrio alto",           "locations": CH11_LOCATIONS, "street": CH11_STREET, "complete_flag": "cap11_completo", "end_flag": "done_cierre11", "map": "res://assets/backgrounds/mapa_centro.png"},
-	12: {"title": "Caso 12 · La filtración",            "locations": CH12_LOCATIONS, "street": CH12_STREET, "complete_flag": "cap12_completo", "end_flag": "done_cierre12"},
-	13: {"title": "Caso 13 · El expediente",            "locations": CH13_LOCATIONS, "street": CH13_STREET, "complete_flag": "cap13_completo", "end_flag": "done_cierre13"},
-	14: {"title": "Caso 14 · El pueblo de la costa",    "locations": CH14_LOCATIONS, "street": CH14_STREET, "complete_flag": "cap14_completo", "end_flag": "done_cierre14", "map": "res://assets/backgrounds/mapa_costa.png"},
-	15: {"title": "Caso 15 · El pueblo de montaña",     "locations": CH15_LOCATIONS, "street": CH15_STREET, "complete_flag": "cap15_completo", "end_flag": "done_cierre15", "map": "res://assets/backgrounds/mapa_montana.png"},
-	16: {"title": "Caso 16 · La otra ciudad",           "locations": CH16_LOCATIONS, "street": CH16_STREET, "complete_flag": "cap16_completo", "end_flag": "done_cierre16", "map": "res://assets/backgrounds/mapa_ciudad2.png"},
-	17: {"title": "Caso 17 · La compra",                "locations": CH17_LOCATIONS, "street": CH17_STREET, "complete_flag": "cap17_completo", "end_flag": "done_cierre17"},
-	18: {"title": "Caso 18 · El consejo",               "locations": CH18_LOCATIONS, "street": CH18_STREET, "complete_flag": "cap18_completo", "end_flag": "done_cierre18"},
-	19: {"title": "Caso 19 · La directora",             "locations": CH19_LOCATIONS, "street": CH19_STREET, "complete_flag": "cap19_completo", "end_flag": "done_cierre19"},
-	20: {"title": "Caso 20 · Nyxos",                    "locations": CH20_LOCATIONS, "street": CH20_STREET, "complete_flag": "cap20_completo", "end_flag": "done_cierre20"},
+	1: {"title": "Capítulo 1 · Desaparición en la iglesia", "locations": CH1_LOCATIONS, "street": CH1_STREET, "complete_flag": "cap1_completo", "end_flag": "done_comisaria"},
+	2: {"title": "Capítulo 2 · Las campanas que faltan",    "locations": CH2_LOCATIONS, "street": CH2_STREET, "complete_flag": "cap2_completo", "end_flag": "done_cierre2"},
+	3: {"title": "Capítulo 3 · El coleccionista",           "locations": CH3_LOCATIONS, "street": CH3_STREET, "complete_flag": "cap3_completo", "end_flag": "done_cierre3"},
+	4: {"title": "Capítulo 4 · El heredero",                "locations": CH4_LOCATIONS, "street": CH4_STREET, "complete_flag": "cap4_completo", "end_flag": "done_cierre4"},
+	5: {"title": "Capítulo 5 · La subasta",                 "locations": CH5_LOCATIONS, "street": CH5_STREET, "complete_flag": "cap5_completo", "end_flag": "done_cierre5"},
+	6: {"title": "Capítulo 6 · La cúspide",                 "locations": CH6_LOCATIONS, "street": CH6_STREET, "complete_flag": "cap6_completo", "end_flag": "done_cierre6"},
+	7: {"title": "Capítulo 7 · La receta",                  "locations": CH7_LOCATIONS, "street": CH7_STREET, "complete_flag": "cap7_completo", "end_flag": "done_cierre7"},
+	8: {"title": "Capítulo 8 · El hermano",                 "locations": CH8_LOCATIONS, "street": CH8_STREET, "complete_flag": "cap8_completo", "end_flag": "done_cierre8"},
+	9: {"title": "Capítulo 9 · La clínica fantasma",        "locations": CH9_LOCATIONS, "street": CH9_STREET, "complete_flag": "cap9_completo", "end_flag": "done_cierre9"},
+	10: {"title": "Capítulo 10 · El laboratorio",           "locations": CH10_LOCATIONS, "street": CH10_STREET, "complete_flag": "cap10_completo", "end_flag": "done_cierre10", "map": "res://assets/backgrounds/mapa_centro.png"},
+	11: {"title": "Capítulo 11 · El barrio alto",           "locations": CH11_LOCATIONS, "street": CH11_STREET, "complete_flag": "cap11_completo", "end_flag": "done_cierre11", "map": "res://assets/backgrounds/mapa_centro.png"},
+	12: {"title": "Capítulo 12 · La filtración",            "locations": CH12_LOCATIONS, "street": CH12_STREET, "complete_flag": "cap12_completo", "end_flag": "done_cierre12"},
+	13: {"title": "Capítulo 13 · El expediente",            "locations": CH13_LOCATIONS, "street": CH13_STREET, "complete_flag": "cap13_completo", "end_flag": "done_cierre13"},
+	14: {"title": "Capítulo 14 · El pueblo de la costa",    "locations": CH14_LOCATIONS, "street": CH14_STREET, "complete_flag": "cap14_completo", "end_flag": "done_cierre14", "map": "res://assets/backgrounds/mapa_costa.png"},
+	15: {"title": "Capítulo 15 · El pueblo de montaña",     "locations": CH15_LOCATIONS, "street": CH15_STREET, "complete_flag": "cap15_completo", "end_flag": "done_cierre15", "map": "res://assets/backgrounds/mapa_montana.png"},
+	16: {"title": "Capítulo 16 · La otra ciudad",           "locations": CH16_LOCATIONS, "street": CH16_STREET, "complete_flag": "cap16_completo", "end_flag": "done_cierre16", "map": "res://assets/backgrounds/mapa_ciudad2.png"},
+	17: {"title": "Capítulo 17 · La compra",                "locations": CH17_LOCATIONS, "street": CH17_STREET, "complete_flag": "cap17_completo", "end_flag": "done_cierre17"},
+	18: {"title": "Capítulo 18 · El consejo",               "locations": CH18_LOCATIONS, "street": CH18_STREET, "complete_flag": "cap18_completo", "end_flag": "done_cierre18"},
+	19: {"title": "Capítulo 19 · La directora",             "locations": CH19_LOCATIONS, "street": CH19_STREET, "complete_flag": "cap19_completo", "end_flag": "done_cierre19"},
+	20: {"title": "Capítulo 20 · Nyxos",                    "locations": CH20_LOCATIONS, "street": CH20_STREET, "complete_flag": "cap20_completo", "end_flag": "done_cierre20"},
 }
 
 # --- Accesos al capítulo actual (Global.chapter) ---
@@ -856,7 +857,7 @@ static func _dlg_brief(done: bool) -> Dictionary:
 			{"who": "narrador", "text": "Amanece gris sobre el Barrio Viejo. La comisaría huele a café recalentado. Núñez ha extendido tres carpetas sobre la mesa, como quien reparte una mala mano de cartas."},
 			{"who": "nunez", "text": "Antes de que se arrepienta: en cuanto toque estos papeles, ya no hay marcha atrás. Para ninguno de los dos."},
 			{"who": "detective", "text": "Ya no había marcha atrás la noche que subí a ese campanario. Deme los nombres."},
-			{"who": "nunez", "text": "Elena Ruiz, veintiocho. Desapareció hace tres semanas en Santa Rita, durante una tormenta. Nadia Kovač, veinticuatro, hace dos, en la ermita del Cristo. Y Marta. Tres iglesias, tres tormentas."},
+			{"who": "nunez", "text": "Elena Ruiz, veintiocho. Desapareció hace tres semanas en Santa Rita, durante una tormenta. Nadia Kovac, veinticuatro, hace dos, en la ermita del Cristo. Y Marta. Tres iglesias, tres tormentas."},
 			{"who": "detective", "text": "Un patrón perfecto. Demasiado perfecto. ¿Qué se hizo con estos casos?"},
 			{"who": "nunez", "text": "Se cerraron en cuarenta y ocho horas. 'Abandono voluntario del domicilio'. Firmados por arriba. Yo solo pude quedarme las copias que ve, y porque las escondí."},
 			{"choices": [
@@ -946,7 +947,7 @@ static func _dlg_refugio(done: bool) -> Dictionary:
 		"beats": [
 			{"who": "narrador", "text": "La Fundación Amparo ocupa un edificio restaurado con dinero que se nota: mármol nuevo, un logo dorado, calefacción. Demasiado caro para un comedor social. El Sr. Vidal te recibe con una sonrisa de dentífrico."},
 			{"who": "vidal", "text": "¡Detective! Qué honor. Aquí solo hacemos el bien, ya lo ve. Damos de comer, damos cobijo. ¿En qué puedo ayudarla, aunque sea tarde?"},
-			{"who": "detective", "text": "Marta Soler era voluntaria aquí. Y ha desaparecido. Como Elena Ruiz. Como Nadia Kovač. Las tres, de aquí."},
+			{"who": "detective", "text": "Marta Soler era voluntaria aquí. Y ha desaparecido. Como Elena Ruiz. Como Nadia Kovac. Las tres, de aquí."},
 			{"who": "vidal", "text": "Terrible, terrible. Pero coincidencia, detective. Por aquí pasan cientos de personas. Que a tres les haya ido mal después no nos convierte en... en lo que insinúa."},
 			{"who": "narrador", "text": "Sonríe, pero un músculo de la mandíbula le tiembla. Sobre su mesa, un folleto: 'Retiros de silencio — solo por invitación del patrono'."},
 			{"choices": [
@@ -1774,6 +1775,275 @@ static func _ch_data_dialogue(id: String, done: bool) -> Dictionary:
 	return out
 
 
+# ---------------------------------------------------------------------------
+#  INTERACCIONES (mini-escenas) — prototipos jugables del tutorial (Cap. 0)
+#  Una localización con entrada aquí abre su VISTA interactiva en la PRIMERA
+#  visita (en vez del diálogo). La revisita usa el diálogo/revisit de S3.
+#  Cada vista aplica clue+flag y emite finished(result) igual que DialogueView.
+# ---------------------------------------------------------------------------
+const INTERACT := {
+"l0a": {"type": "search", "bg": "plaza", "flag": "done_l0a", "show_marks": true,
+	"intro": "MECANICA - BUSQUEDA: examina la PLAZA. Toca lo que te llame la atencion.",
+	"clue": {"title": "Leer el escenario", "text": "Un charco reflejaba a alguien huyendo: se aprende a leer la escena."},
+	"reveal": "Una pista! Se guarda sola en tu libreta (arriba a la derecha).",
+	"hotspots": [
+		{"pos": Vector2(0.47, 0.85), "r": 34, "target": true, "text": "En el gran charco se recorta una figura que se aleja. AQUI hay algo."},
+		{"pos": Vector2(0.70, 0.53), "r": 28, "text": "Un farol de gas encendido. Luz, no pistas."},
+		{"pos": Vector2(0.22, 0.66), "r": 28, "text": "Puestos con la persiana echada. Cerrado."},
+		{"pos": Vector2(0.66, 0.63), "r": 26, "text": "Una ventana con luz roja. Nada util."}]},
+"rh0": {"type": "examine", "bg": "callejon", "flag": "done_rh0",
+	"intro": "MECÁNICA · EXAMINAR: usa +/− (o la rueda) para acercarte y arrastra. Busca el detalle.",
+	"clue": {"title": "El detalle del callejón", "text": "Una marca grabada en la pared: el sello de una serpiente. Fácil de pasar por alto.", "false": false},
+	"detail_pos": Vector2(0.60, 0.46), "detail_r": 74,
+	"hint": "Hay algo grabado cerca del centro. Acércate.",
+	"found": "Ahí: una marca grabada que a simple vista no se veía."},
+"l0b": {"type": "puzzle", "bg": "tienda", "flag": "done_l0b",
+	"intro": "MECÁNICA · PUZZLE: el cajón del mostrador está cerrado. Marca el código del recibo.",
+	"clue": {"title": "Tirar del hilo", "text": "Dentro del cajón, el hilo que conecta el caso. Con esta ya tienes las dos pistas."},
+	"kind": "keypad", "code": "427",
+	"hint": "En el recibo pegado al mostrador: 4 · 2 · 7.",
+	"solved": "¡Cajón abierto! Dentro, la pista que buscabas."},
+"l0c": {"type": "present", "bg": "archivo", "flag": "done_l0c",
+	"intro": "MECÁNICA · PRESENTAR PRUEBA: escucha al sospechoso y toca la frase que es MENTIRA.",
+	"speaker": "sospechoso",
+	"statements": [
+		{"text": "Yo esa noche no pisé la plaza.", "lie": true},
+		{"text": "No sé nada de ninguna investigación.", "lie": false},
+		{"text": "Estuve en casa durmiendo.", "lie": false}],
+	"evidence_needed": "Leer el escenario",
+	"rebuttal": "¡Contradicción! Tu pista lo sitúa en la plaza. Se acabó el teatro.",
+	"hint_wrong_statement": "Esa frase no choca con lo que sabes. Busca la que contradice una pista.",
+	"hint_wrong_evidence": "Esa pista no desmiente su mentira. Prueba con otra."},
+"fin0": {"type": "deduce", "bg": "archivo", "flag": "cap0_completo",
+	"intro": "MECÁNICA · DEDUCCIÓN: une las pistas. ¿Qué se deduce de ellas?",
+	"clues_shown": ["Leer el escenario", "Tirar del hilo"],
+	"conclusions": ["Con estas pistas, el caso se resuelve aquí.", "Aún faltan pistas por reunir.", "No hay caso que resolver."],
+	"solution": 0,
+	"solved": "¡Deducción correcta! Caso de prácticas resuelto.",
+	"wrong": "No cuadra con las pistas. Vuelve a mirarlas."},
+
+# ===== ESCENAS DE BÚSQUEDA EN CASOS REALES (Temporada 1) =====
+# Cada una añade una pista ATMOSFÉRICA (no cuenta para el gating de "clues4") y luego
+# ENCADENA el diálogo de la localización (then_dialogue) para no perder la narrativa.
+# El diálogo pone su done_<id>; la búsqueda pone su searched_<id> (no repite en revisitas).
+"plaza": {"type": "search", "bg": "plaza", "flag": "searched_plaza", "then_dialogue": true,
+	"intro": "Acabas de llegar. Lee la PLAZA antes de moverte: que desentona?",
+	"clue": {"title": "El reflejo en el charco", "text": "En el gran charco del centro se recorta, borrosa, una figura que se aleja hacia el fondo: alguien cruzo la plaza con prisa esa noche."},
+	"reveal": "Anotado. Alguien cruzo la plaza deprisa esa noche.",
+	"hotspots": [
+		{"pos": Vector2(0.47, 0.85), "r": 34, "target": true, "text": "En el charco, borrosa, una figura que se aleja. Alguien cruzo deprisa."},
+		{"pos": Vector2(0.70, 0.53), "r": 28, "text": "Un farol de gas encendido. Luz, no pistas."},
+		{"pos": Vector2(0.22, 0.66), "r": 28, "text": "Puestos con la persiana echada. Cerrado a esta hora."},
+		{"pos": Vector2(0.66, 0.63), "r": 26, "text": "Una ventana con luz roja. Alguien en vela, nada mas."}]},
+"casa_marta": {"type": "search", "bg": "casa_marta", "flag": "searched_casa_marta", "then_dialogue": true,
+	"intro": "Estas en la CASA DE MARTA. Registrala con calma: algo se salio de la rutina.",
+	"clue": {"title": "La taza a medias", "text": "Sobre la mesita, una taza de cafe a medias y ya fria, con papeles al lado. Marta salio sin terminarla, con prisa."},
+	"reveal": "Anotado. Marta salio de casa con prisa y sin plan.",
+	"hotspots": [
+		{"pos": Vector2(0.47, 0.74), "r": 32, "target": true, "text": "Una taza a medias y fria sobre la mesita. Salio con prisa."},
+		{"pos": Vector2(0.16, 0.30), "r": 28, "text": "Fotos enmarcadas en la pared. Emotivas, nada util."},
+		{"pos": Vector2(0.85, 0.66), "r": 28, "text": "Un sillon junto a la ventana. Vacio."},
+		{"pos": Vector2(0.10, 0.62), "r": 26, "text": "Una lampara de mesa. Apagada."}]},
+"refugio": {"type": "search", "bg": "refugio", "flag": "searched_refugio", "then_dialogue": true,
+	"intro": "FUNDACION AMPARO. Antes de que te acompanen, mira alrededor: no todo cuadra.",
+	"clue": {"title": "El registro tachado", "text": "En el mostrador, un libro de acogidas abierto con varios nombres tachados con la misma tinta. Como si nunca hubieran estado."},
+	"reveal": "Anotado. Alguien borra a personas del registro del refugio.",
+	"hotspots": [
+		{"pos": Vector2(0.62, 0.47), "r": 30, "target": true, "text": "Un libro de acogidas con nombres tachados, sobre el mostrador."},
+		{"pos": Vector2(0.20, 0.33), "r": 28, "text": "Un tablon de carteles de caridad. Sonrisas de catalogo."},
+		{"pos": Vector2(0.14, 0.60), "r": 28, "text": "Un sofa de espera, gastado. Vacio."},
+		{"pos": Vector2(0.43, 0.62), "r": 26, "text": "Un atril con folletos. Propaganda."}]},
+"capilla": {"type": "search", "bg": "capilla", "flag": "searched_capilla", "then_dialogue": true,
+	"intro": "La CAPILLA PRIVADA bajo la Fundacion. Examinala: alguien ha estado aqui hace poco.",
+	"clue": {"title": "Cera fresca", "text": "Los cirios de la pared aun gotean cera tibia. Esta capilla que dicen cerrada se usa a diario."},
+	"reveal": "Anotado. La capilla cerrada se usa en secreto.",
+	"hotspots": [
+		{"pos": Vector2(0.14, 0.36), "r": 30, "target": true, "text": "Cirios en la pared con la cera aun tibia. Se han usado hoy."},
+		{"pos": Vector2(0.50, 0.60), "r": 28, "text": "El altar de madera. Solemne y despejado."},
+		{"pos": Vector2(0.86, 0.66), "r": 28, "text": "Bancos de terciopelo. Vacios."},
+		{"pos": Vector2(0.45, 0.88), "r": 26, "text": "La alfombra roja, gastada. Nada debajo."}]},
+"mansion": {"type": "search", "bg": "mansion", "flag": "searched_mansion", "then_dialogue": true,
+	"intro": "La MANSION del mecenas. Fijate bien antes de que aparezca nadie.",
+	"clue": {"title": "El cuadro torcido", "text": "Un cuadro cuelga torcido; detras asoma el rectangulo limpio, sin polvo, de otro que ya no esta. Falta una pieza de la coleccion."},
+	"reveal": "Anotado. De la coleccion falta algo, y hace poco.",
+	"hotspots": [
+		{"pos": Vector2(0.11, 0.54), "r": 30, "target": true, "text": "Un cuadro torcido; detras, el hueco sin polvo de otro que falta."},
+		{"pos": Vector2(0.50, 0.16), "r": 28, "text": "Una lampara de arana. Ostentacion pura."},
+		{"pos": Vector2(0.34, 0.80), "r": 28, "text": "La escalinata principal, encerada. Impecable."},
+		{"pos": Vector2(0.92, 0.55), "r": 26, "text": "Una lampara de sobremesa. Cara, inutil."}]},
+"sotano": {"type": "search", "bg": "sotano", "flag": "searched_sotano", "then_dialogue": true,
+	"intro": "EL SOTANO de la mansion. Con cuidado: aqui paso algo.",
+	"clue": {"title": "Aranazos en la reja", "text": "En los barrotes de la reja, aranazos a la altura de unas manos por dentro. Aqui encerraron a alguien."},
+	"reveal": "Anotado. Aqui retuvieron a alguien contra su voluntad.",
+	"hotspots": [
+		{"pos": Vector2(0.50, 0.62), "r": 32, "target": true, "text": "Aranazos por dentro de la reja, a la altura de unas manos."},
+		{"pos": Vector2(0.25, 0.76), "r": 28, "text": "Cajas de embalaje. Vacias y podridas."},
+		{"pos": Vector2(0.20, 0.55), "r": 28, "text": "Una reja pequena al muro. Oxidada, fija."},
+		{"pos": Vector2(0.55, 0.90), "r": 26, "text": "Agua estancada. Solo refleja los barrotes."}]},
+
+# ===== BUSQUEDA EN CASOS REALES - Temporada 2 y 3 (mismo patron: atmosfera + then_dialogue) =====
+"escena4": {"type": "search", "bg": "iglesia_int", "flag": "searched_escena4", "then_dialogue": true,
+	"intro": "La IGLESIA DE LA MERCED, aun acordonada. Recorrela: el metodo se repite, pero hay algo nuevo.",
+	"clue": {"title": "El lacre en el suelo", "text": "En el suelo, al pie de la escalera, una gota de lacre rojo endurecido. Una firma nueva sobre un metodo viejo."},
+	"reveal": "Anotado. El secuestrador ha dejado su sello propio.",
+	"hotspots": [
+		{"pos": Vector2(0.46, 0.91), "r": 34, "target": true, "text": "En el suelo, al pie de la escalera, lacre rojo endurecido. Reciente."},
+		{"pos": Vector2(0.17, 0.62), "r": 28, "text": "Una hornacina con una vela. Devocion, nada mas."},
+		{"pos": Vector2(0.72, 0.81), "r": 28, "text": "Una ventana enrejada. Cerrada por dentro."},
+		{"pos": Vector2(0.42, 0.61), "r": 26, "text": "Una lampara que se balancea. Corriente de aire."}]},
+"trastienda": {"type": "search", "bg": "trastienda", "flag": "searched_trastienda", "then_dialogue": true,
+	"intro": "La TRASTIENDA del salon. Rapido, antes de que vuelvan: aqui se guarda lo que no se ensena.",
+	"clue": {"title": "El cuaderno de pujas", "text": "Sobre el escritorio, medio tapado, un cuaderno con pujas y apodos. Nadie apunta esto por gusto."},
+	"reveal": "Anotado. Hay un registro de la subasta y de quien puja.",
+	"hotspots": [
+		{"pos": Vector2(0.72, 0.58), "r": 30, "target": true, "text": "Un cuaderno de pujas medio tapado, sobre el escritorio."},
+		{"pos": Vector2(0.22, 0.35), "r": 28, "text": "Estanterias de cajas archivadas. Facturas viejas."},
+		{"pos": Vector2(0.85, 0.30), "r": 28, "text": "Mas cajas apiladas. Genero y embalajes."},
+		{"pos": Vector2(0.45, 0.62), "r": 26, "text": "Un mueble de cajones. Vacios o atascados."}]},
+"coartada": {"type": "search", "bg": "mansion", "flag": "searched_coartada", "then_dialogue": true,
+	"intro": "La MANSION VAULTIER. Su coartada dice una cosa; la casa, quiza otra.",
+	"clue": {"title": "La escalera a la azotea", "text": "La escalera privada que sube a la azotea tiene el polvo pisado: alguien sube ahi las noches senaladas, cuando dice estar en sus galas."},
+	"reveal": "Anotado. Vaultier no estaba donde dice esas noches.",
+	"hotspots": [
+		{"pos": Vector2(0.34, 0.72), "r": 30, "target": true, "text": "La escalera privada a la azotea, con el polvo recien pisado."},
+		{"pos": Vector2(0.11, 0.54), "r": 28, "text": "Un cuadro enmarcado. Ostentacion, nada mas."},
+		{"pos": Vector2(0.50, 0.16), "r": 28, "text": "Una lampara de arana. Cristal y oro."},
+		{"pos": Vector2(0.92, 0.55), "r": 26, "text": "Una lampara de sobremesa. Cara, inutil."}]},
+"l7a": {"type": "search", "bg": "morgue", "flag": "searched_l7a", "then_dialogue": true,
+	"intro": "La MORGUE. Mientras Sonia prepara el cuerpo, mira alrededor: algo no cuadra en el papeleo.",
+	"clue": {"title": "El informe corregido", "text": "En el mostrador central, un informe de autopsia con una linea tachada y reescrita por otra mano."},
+	"reveal": "Anotado. Alguien altero el informe forense.",
+	"hotspots": [
+		{"pos": Vector2(0.52, 0.60), "r": 30, "target": true, "text": "En el mostrador, un informe con una linea tachada y reescrita."},
+		{"pos": Vector2(0.20, 0.62), "r": 28, "text": "Una mesa de autopsias. Limpia, vacia."},
+		{"pos": Vector2(0.60, 0.45), "r": 28, "text": "Cajones de acero para cuerpos. Cerrados."},
+		{"pos": Vector2(0.82, 0.68), "r": 26, "text": "Otra mesa, con una sabana. No la levantes aun."}]},
+"l8a": {"type": "search", "bg": "piso_diego", "flag": "searched_l8a", "then_dialogue": true,
+	"intro": "El PISO DE DIEGO. Con el corazon encogido, registra: necesitas saber hasta donde llega.",
+	"clue": {"title": "Los blisters vacios", "text": "En el cajon de la mesilla, blisters de Somnia vacios, escondidos. Mas de los que un tratamiento explica."},
+	"reveal": "Anotado. Diego consume mucho mas de lo recetado.",
+	"hotspots": [
+		{"pos": Vector2(0.73, 0.80), "r": 30, "target": true, "text": "El cajon de la mesilla: blisters de Somnia vacios, escondidos."},
+		{"pos": Vector2(0.12, 0.68), "r": 28, "text": "Un televisor viejo encendido. Ruido de fondo."},
+		{"pos": Vector2(0.14, 0.28), "r": 28, "text": "Recortes y posters. Cosas de siempre."},
+		{"pos": Vector2(0.45, 0.82), "r": 26, "text": "La cama deshecha. Vive al dia."}]},
+"l9a": {"type": "search", "bg": "bufete_clara", "flag": "searched_l9a", "then_dialogue": true,
+	"intro": "El BUFETE DE CLARA. Entre sus papeles hay algo que ni ella sabe que guarda.",
+	"clue": {"title": "El expediente sellado", "text": "Sobre el escritorio, un expediente abierto con el sello de consentimiento y una firma que no coincide con la del paciente."},
+	"reveal": "Anotado. Los consentimientos estan falsificados.",
+	"hotspots": [
+		{"pos": Vector2(0.38, 0.84), "r": 28, "target": true, "text": "Un expediente abierto con una firma que no cuadra."},
+		{"pos": Vector2(0.12, 0.50), "r": 28, "text": "Una lampara de banquero. Solo da luz."},
+		{"pos": Vector2(0.72, 0.42), "r": 28, "text": "Diplomas enmarcados. Legitimos, suyos."},
+		{"pos": Vector2(0.74, 0.72), "r": 26, "text": "El sillon de Clara. Vacio."}]},
+"l10a": {"type": "search", "bg": "laboratorio", "flag": "searched_l10a", "then_dialogue": true,
+	"intro": "El LABORATORIO NYXOS. Todo reluce. Fijate en lo que la limpieza no borro.",
+	"clue": {"title": "El albaran interno", "text": "Sobre una mesa, un albaran con el logo de Nyxos: numera lotes... y uno lleva iniciales de personas."},
+	"reveal": "Anotado. Nyxos etiqueta personas como lotes.",
+	"hotspots": [
+		{"pos": Vector2(0.30, 0.62), "r": 28, "target": true, "text": "Sobre la mesa, un albaran de Nyxos con iniciales humanas."},
+		{"pos": Vector2(0.06, 0.55), "r": 28, "text": "Frascos de reactivo iluminados. Etiquetas correctas."},
+		{"pos": Vector2(0.85, 0.55), "r": 28, "text": "Botellas alineadas. Inventario normal."},
+		{"pos": Vector2(0.52, 0.55), "r": 26, "text": "Aparatos de analisis. Apagados."}]},
+"l11a": {"type": "search", "bg": "barrio_alto", "flag": "searched_l11a", "then_dialogue": true,
+	"intro": "El BARRIO ALTO. Tras las verjas, el dinero se mueve en silencio. Busca su rastro.",
+	"clue": {"title": "El coche sin matricula", "text": "Un coche de gama alta parado en la calle sin matricula y con el capo tibio: alguien acaba de entregar algo en mano aqui."},
+	"reveal": "Anotado. Reparten dinero a domicilio, sin nombres.",
+	"hotspots": [
+		{"pos": Vector2(0.53, 0.73), "r": 30, "target": true, "text": "Un coche de gama alta sin matricula, con el capo aun tibio."},
+		{"pos": Vector2(0.25, 0.32), "r": 28, "text": "Ventanas encendidas de una villa. Cenas tardias."},
+		{"pos": Vector2(0.80, 0.68), "r": 28, "text": "Una farola. Ilumina el asfalto mojado."},
+		{"pos": Vector2(0.30, 0.60), "r": 26, "text": "Setos recortados. Jardineria cara."}]},
+"l12a": {"type": "search", "bg": "redaccion", "flag": "searched_l12a", "then_dialogue": true,
+	"intro": "La REDACCION. Vera confia en ti; su mesa, sin querer, cuenta mas.",
+	"clue": {"title": "El post-it garabateado", "text": "Pegado bajo el monitor de Vera, un post-it con una hora y un muelle. Una cita a ciegas."},
+	"reveal": "Anotado. Hay una cita secreta anotada al vuelo.",
+	"hotspots": [
+		{"pos": Vector2(0.80, 0.72), "r": 28, "target": true, "text": "Bajo el monitor de Vera, un post-it con una hora y un muelle."},
+		{"pos": Vector2(0.18, 0.72), "r": 28, "text": "Ordenadores de la redaccion. Titulares a medias."},
+		{"pos": Vector2(0.06, 0.42), "r": 28, "text": "Archivadores de recortes. Hemeroteca."},
+		{"pos": Vector2(0.40, 0.80), "r": 26, "text": "Pilas de periodicos por el suelo. Caos habitual."}]},
+"l13a": {"type": "search", "bg": "archivo_medico", "flag": "searched_l13a", "then_dialogue": true,
+	"intro": "El ARCHIVO MEDICO. Filas de expedientes. Uno desentona por lo que le falta.",
+	"clue": {"title": "La ficha sin nombre", "text": "En una caja del estante, una ficha clinica con numero de sujeto pero sin nombre. Alguien prefirio que no lo tuviera."},
+	"reveal": "Anotado. Hay pacientes reducidos a un numero.",
+	"hotspots": [
+		{"pos": Vector2(0.20, 0.45), "r": 28, "target": true, "text": "Una caja con una ficha: numero de sujeto y sin nombre."},
+		{"pos": Vector2(0.82, 0.40), "r": 28, "text": "Cajas de expedientes archivados. En orden."},
+		{"pos": Vector2(0.15, 0.75), "r": 28, "text": "Cajas en el estante bajo. Polvo."},
+		{"pos": Vector2(0.55, 0.45), "r": 26, "text": "Filas de archivadores. Interminables."}]},
+"l14a": {"type": "search", "bg": "costa", "flag": "searched_l14a", "then_dialogue": true,
+	"intro": "El PUEBLO DE LA COSTA. Aire salado y silencio de mas. Mira lo que nadie mira.",
+	"clue": {"title": "La barca de mas", "text": "Una barca amarrada junto al muelle con correas y lonas nuevas, impropias de un pescador: aqui no se pesca, se transporta."},
+	"reveal": "Anotado. Mueven carga -o personas- por mar.",
+	"hotspots": [
+		{"pos": Vector2(0.78, 0.83), "r": 30, "target": true, "text": "Una barca con amarres y lonas nuevas junto al muelle. No es de pesca."},
+		{"pos": Vector2(0.68, 0.40), "r": 28, "text": "El caseron sobre la loma. Luces apagadas."},
+		{"pos": Vector2(0.29, 0.42), "r": 28, "text": "Un mastil viejo. Cruje con el viento."},
+		{"pos": Vector2(0.25, 0.88), "r": 26, "text": "Una barca de pesca varada. Vacia."}]},
+"l15a": {"type": "search", "bg": "montana", "flag": "searched_l15a", "then_dialogue": true,
+	"intro": "El PUEBLO DE MONTANA. Frio y aislado, perfecto para esconder. Registra con calma.",
+	"clue": {"title": "El sanatorio de lo alto", "text": "En lo alto de la loma, un edificio aislado con una chimenea humeando toda la noche. De ese sanatorio nadie sale con el alta de verdad."},
+	"reveal": "Anotado. El sanatorio esconde a quienes no salen.",
+	"hotspots": [
+		{"pos": Vector2(0.62, 0.25), "r": 32, "target": true, "text": "En lo alto, un edificio aislado con la chimenea humeando de noche."},
+		{"pos": Vector2(0.30, 0.68), "r": 28, "text": "Cabanas con la luz encendida. Vida de pueblo."},
+		{"pos": Vector2(0.55, 0.85), "r": 28, "text": "El camino nevado. Pisadas de siempre."},
+		{"pos": Vector2(0.85, 0.45), "r": 26, "text": "Bosque de abetos. Solo nieve y silencio."}]},
+"l16a": {"type": "search", "bg": "ciudad2", "flag": "searched_l16a", "then_dialogue": true,
+	"intro": "OTRA CIUDAD, misma sombra. Compara lo que ves con lo que ya conoces.",
+	"clue": {"title": "El mismo cartel", "text": "En una fachada, el mismo logotipo de Nyxos que en tu ciudad, con la serpiente. No es casualidad: es una cadena."},
+	"reveal": "Anotado. Nyxos replica el mismo montaje en otras ciudades.",
+	"hotspots": [
+		{"pos": Vector2(0.68, 0.55), "r": 30, "target": true, "text": "Un rotulo con el logo de Nyxos, identico al de tu ciudad."},
+		{"pos": Vector2(0.20, 0.72), "r": 28, "text": "Escaparates y maquinas. Comercio de barrio."},
+		{"pos": Vector2(0.30, 0.35), "r": 28, "text": "Rascacielos con oficinas encendidas. Rutina."},
+		{"pos": Vector2(0.90, 0.85), "r": 26, "text": "Un coche aparcado. Mojado, vacio."}]},
+"l17a": {"type": "search", "bg": "bar_clara", "flag": "searched_l17a", "then_dialogue": true,
+	"intro": "EL BAR DE CLARA. Una copa tranquila... o eso parece. Fijate en lo que sobra.",
+	"clue": {"title": "La tarjeta olvidada", "text": "Bajo la barra, junto a las botellas, la tarjeta de un bufete que arregla problemas. Alguien la dejo para ti."},
+	"reveal": "Anotado. Te estan tanteando con un intermediario.",
+	"hotspots": [
+		{"pos": Vector2(0.12, 0.80), "r": 28, "target": true, "text": "Bajo la barra, entre las botellas, una tarjeta de un bufete."},
+		{"pos": Vector2(0.25, 0.62), "r": 28, "text": "Botellas alineadas al contraluz. Inventario."},
+		{"pos": Vector2(0.85, 0.90), "r": 28, "text": "Reservados de cuero rojo. Vacios."},
+		{"pos": Vector2(0.17, 0.16), "r": 26, "text": "Un farolillo rojo. Ambiente, nada mas."}]},
+"l18a": {"type": "search", "bg": "oficina", "flag": "searched_l18a", "then_dialogue": true,
+	"intro": "LA SEDE DE NYXOS. Pasillos de cristal. Lo que falta grita mas que lo que hay.",
+	"clue": {"title": "El acta incompleta", "text": "Sobre un escritorio, un acta del consejo con un punto del orden del dia arrancado. Justo el que importaba."},
+	"reveal": "Anotado. Han mutilado el acta del consejo.",
+	"hotspots": [
+		{"pos": Vector2(0.85, 0.70), "r": 28, "target": true, "text": "Sobre un escritorio, un acta con un punto del orden del dia arrancado."},
+		{"pos": Vector2(0.12, 0.68), "r": 28, "text": "Puestos de trabajo. Pantallas en reposo."},
+		{"pos": Vector2(0.35, 0.66), "r": 28, "text": "Mamparas de oficina. Vacias a esta hora."},
+		{"pos": Vector2(0.50, 0.45), "r": 26, "text": "Ventanal a la ciudad. Vistas, no pistas."}]},
+"l19a": {"type": "search", "bg": "oficina", "flag": "searched_l19a", "then_dialogue": true,
+	"intro": "EL DESPACHO DE ADLER. La cara de Nyxos. Su despacho la delata mejor que sus palabras.",
+	"clue": {"title": "La foto recortada", "text": "En el escritorio de Adler, una foto de grupo del consejo con una cara recortada a conciencia."},
+	"reveal": "Anotado. Adler borra a alguien de la foto oficial.",
+	"hotspots": [
+		{"pos": Vector2(0.15, 0.70), "r": 28, "target": true, "text": "En el escritorio de Adler, una foto de grupo con una cara recortada."},
+		{"pos": Vector2(0.85, 0.68), "r": 28, "text": "Un monitor encendido. Salvapantallas corporativo."},
+		{"pos": Vector2(0.35, 0.66), "r": 28, "text": "Mamparas de oficina. Despejadas."},
+		{"pos": Vector2(0.50, 0.45), "r": 26, "text": "El ventanal panoramico. La ciudad a sus pies."}]},
+"l20a": {"type": "search", "bg": "consejo", "flag": "searched_l20a", "then_dialogue": true,
+	"intro": "LA SALA DEL CONSEJO. La cupula al completo. Esta vez, que quede grabado.",
+	"clue": {"title": "La grabadora oculta", "text": "Encajada bajo el borde de la mesa del consejo, una grabadora que alguien dejo corriendo. La prueba definitiva puede estar aqui."},
+	"reveal": "Anotado. Puede que la prueba definitiva ya se este grabando.",
+	"hotspots": [
+		{"pos": Vector2(0.45, 0.88), "r": 30, "target": true, "text": "Bajo el borde de la mesa, una grabadora dejada corriendo."},
+		{"pos": Vector2(0.50, 0.70), "r": 28, "text": "Carpetas repartidas por la mesa. Orden del dia."},
+		{"pos": Vector2(0.65, 0.82), "r": 28, "text": "Una tablet encendida. Salvapantallas corporativo."},
+		{"pos": Vector2(0.15, 0.72), "r": 26, "text": "Butacas de cuero. Vacias, por ahora."}]},
+}
+
+static func interact_data(id: String) -> Dictionary:
+	return INTERACT.get(id, {})
+
+static func has_interact(id: String) -> bool:
+	return INTERACT.has(id)
+
+
 const S3 := {
 # --- Cap. 0 · TUTORIAL (enseña el bucle de juego) ---
 "brief0": {"bg": "comisaria", "flag": "done_brief0", "beats": [
@@ -1781,10 +2051,11 @@ const S3 := {
 	{"who": "narrador", "text": "Estás en la COMISARÍA, tu base de operaciones. Alguien va a hablarte..."},
 	{"who": "nunez", "text": "Buenas noches. Soy el sargento Núñez. Trabajo aquí, en la comisaría, y voy a ser tu apoyo durante todo el juego."},
 	{"who": "narrador", "text": "» Ese es el SARGENTO NÚÑEZ. Cuando un personaje habla, ves su RETRATO a un lado de la pantalla y su NOMBRE encima del texto."},
-	{"who": "detective", "text": "Y yo soy Nora Vega. Detective. La que se va a patear el barrio caso tras caso."},
+	{"who": "detective", "text": "Y yo soy Nora Vega. Detective. La que se va a patear cada caso hasta el fondo, caiga quien caiga."},
 	{"who": "narrador", "text": "» Ella es NORA VEGA, la PROTAGONISTA: a la que acompañas durante todo el juego. Su retrato aparece al OTRO lado cuando habla ella."},
 	{"who": "nunez", "text": "El trabajo es fácil de entender: la ciudad es un MAPA con lugares marcados. Vas a un lugar, hablas con la gente y sacas PISTAS. Con las pistas, resuelves el caso."},
 	{"who": "detective", "text": "Empecemos por lo básico. En cuanto cerremos esta charla, volverás al mapa. Yo te voy guiando."},
+	{"who": "nunez", "text": "Y no te limitarás a leer: en cada sitio BUSCARÁS pistas en el escenario, EXAMINARÁS detalles de cerca, forzarás algún CANDADO, presentarás PRUEBAS para pillar una mentira y ATARÁS CABOS para deducir. Yo te guío en cada paso."},
 	{"who": "narrador", "text": "» AHORA: al cerrar esto verás el MAPA. Habrá un punto que PARPADEA (la Plaza del Barrio). TÓCALO para ir allí. Arriba del todo, la barra de OBJETIVO te dirá siempre qué hacer."}], "revisit": "Tutorial: toca en el mapa el punto que parpadea. Arriba, la barra de objetivo te dice qué hacer."},
 "l0a": {"bg": "plaza", "flag": "done_l0a", "clue": {"title": "Leer el escenario", "text": "Cada lugar que visitas abre una escena; lo que sacas en claro se anota como PISTA en tu libreta."}, "beats": [
 	{"who": "narrador", "text": "Has llegado a la PLAZA. Esto es una LOCALIZACIÓN: una escena donde observas y hablas con la gente. Toca para avanzar el texto, como hasta ahora."},
@@ -1809,6 +2080,8 @@ const S3 := {
 	{"who": "detective", "text": "Con esta ya tengo las dos pistas que pedía este caso de prácticas."},
 	{"who": "narrador", "text": "» REGLA IMPORTANTE: el LUGAR donde se resuelve el caso NO se abre hasta que tienes TODAS las pistas. Mira la barra de OBJETIVO arriba: ahora te dirá que vayas al lugar clave."},
 	{"who": "narrador", "text": "» Vuelve al mapa y toca el ARCHIVO, el punto que se acaba de desbloquear."}], "revisit": "Con todas las pistas de calle se abre el lugar clave. La barra de objetivo (arriba) te guía."},
+"l0c": {"bg": "archivo", "flag": "done_l0c", "beats": [
+	{"who": "narrador", "text": "El interrogatorio: presentaste la prueba y lo pillaste en la mentira."}], "revisit": "Aquí desarmé al sospechoso: su mentira chocaba con una pista, y presentar la prueba correcta lo delató."},
 "fin0": {"bg": "archivo", "flag": "cap0_completo", "clue": {"title": "Cerrar el caso", "text": "Con las pistas reunidas se llega al lugar clave y se resuelve el caso. Después, se informa en comisaría para abrir el siguiente."}, "beats": [
 	{"who": "narrador", "text": "El ARCHIVO. Este es el LUGAR CLAVE del caso, y solo se abrió porque ya tenías todas las pistas."},
 	{"who": "detective", "text": "Aquí se junta todo y el caso se resuelve. Esto es siempre lo último de cada caso."},
@@ -1817,7 +2090,7 @@ const S3 := {
 	{"who": "narrador", "text": "» Vuelve al mapa por última vez y toca la COMISARÍA para terminar el tutorial."}], "revisit": "El lugar clave del tutorial. Con las pistas reunidas, el caso se cierra. Luego, informar en comisaría."},
 "cierre0": {"bg": "comisaria", "flag": "done_cierre0", "beats": [
 	{"who": "narrador", "text": "De vuelta en la comisaría. Fin del tutorial."},
-	{"who": "nunez", "text": "Bien hecho. Recuerda el oficio: sigue el MAPA, reúne PISTAS, ignora las FALSAS, cierra en el LUGAR CLAVE y vuelve a INFORMAR. Ese es el bucle de cada caso."},
+	{"who": "nunez", "text": "Bien hecho. Ese es el oficio: recorre el MAPA, BUSCA y EXAMINA para sacar PISTAS, fuerza lo que se cierre, PRESENTA la prueba que pilla la mentira y DEDUCE para cerrar el caso. Luego, siempre, INFORMA en comisaría."},
 	{"who": "narrador", "text": "» El juego GUARDA solo a cada paso. Puedes cerrar cuando quieras y pulsar «Continuar» en el menú principal para seguir donde lo dejaste."},
 	{"who": "detective", "text": "Lo tengo. Mapa, pistas, libreta, lugar clave, informar. Vamos a lo de verdad."},
 	{"who": "nunez", "text": "Se acabó el ensayo. Tu primer caso real: una desaparición en la iglesia de San José. Suerte ahí fuera, detective Vega."},

@@ -41,6 +41,9 @@ var _name_label: Label
 var _text: Label
 var _hint: Label
 var _choices: VBoxContainer
+var _skip_btn: Button        # "Saltar ⏭": solo en revisitas (escena ya vista)
+
+var _is_repeat := false      # true si esta escena ya se había completado antes
 
 var _placeholder_cache: Dictionary = {}
 
@@ -57,12 +60,60 @@ func _ready() -> void:
 func start(dialogue: Dictionary) -> void:
 	_dialogue = dialogue
 	_queue = (dialogue.get("beats", []) as Array).duplicate()
+	# Revisita: si el done_<id> de esta escena YA estaba puesto al empezar, no es la
+	# primera vez -> ofrecemos "Saltar ⏭" para pasar la narración hasta las acciones.
+	var flag := String(dialogue.get("flag", ""))
+	_is_repeat = flag != "" and Global.has_flag(flag)
+	if _is_repeat:
+		_build_skip_button()
 	_apply_bg(dialogue.get("bg", ""))
 	# Aparicion suave
 	modulate.a = 0.0
 	var t := create_tween()
 	t.tween_property(self, "modulate:a", 1.0, 0.35)
 	_advance()
+
+
+## Botón discreto (arriba-derecha) para saltar la narración ya vista. Se detiene en la
+## primera decisión (choices) para que el jugador siga tomando las acciones; si no hay
+## decisiones, salta hasta el final de la escena.
+func _build_skip_button() -> void:
+	_skip_btn = Button.new()
+	_skip_btn.text = Global.loc("Saltar ⏭")
+	_skip_btn.focus_mode = Control.FOCUS_NONE
+	_skip_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_skip_btn.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_skip_btn.offset_left = -150
+	_skip_btn.offset_right = -18
+	_skip_btn.offset_top = 16
+	_skip_btn.offset_bottom = 52
+	_skip_btn.add_theme_font_size_override("font_size", 14)
+	_skip_btn.add_theme_color_override("font_color", Global.COL_TEXT)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.08, 0.09, 0.12, 0.86)
+	sb.set_corner_radius_all(6)
+	sb.set_border_width_all(1)
+	sb.border_color = Global.COL_ACCENT_DIM
+	sb.set_content_margin_all(8)
+	_skip_btn.add_theme_stylebox_override("normal", sb)
+	var hb := sb.duplicate() as StyleBoxFlat
+	hb.border_color = Global.COL_ACCENT
+	_skip_btn.add_theme_stylebox_override("hover", hb)
+	_skip_btn.pressed.connect(_skip_to_actions)
+	add_child(_skip_btn)
+
+
+func _skip_to_actions() -> void:
+	if _choosing:
+		return
+	Global.play_sfx(Global.SFX_CLICK, -6.0)
+	_typing = false
+	# Descarta los beats de narración hasta topar con una decisión (choices) o el final.
+	while not _queue.is_empty() and not (_queue[0] as Dictionary).has("choices"):
+		var beat: Dictionary = _queue.pop_front()
+		if beat.has("bg"):
+			_apply_bg(beat.bg)
+	_advance()   # muestra la decisión, o si la cola quedó vacía cierra la escena
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +147,15 @@ void fragment() {
 	_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
+
+	# Marco cinematografico: vineta negra que se funde a la imagen (textura, fiable).
+	var _mfrm := TextureRect.new()
+	_mfrm.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_mfrm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mfrm.stretch_mode = TextureRect.STRETCH_SCALE
+	if ResourceLoader.exists("res://assets/ui/frame_vignette.png"):
+		_mfrm.texture = load("res://assets/ui/frame_vignette.png")
+	add_child(_mfrm)
 
 	# Oscurecido inferior para legibilidad del texto
 	var scrim := ColorRect.new()
@@ -319,6 +379,7 @@ func _show_line(beat: Dictionary) -> void:
 	_choosing = false
 	var who: String = beat.get("who", "narrador")
 	_who = who
+	Global.note_char(who)   # tablero dinámico: recuerda a quién hemos visto/interrogado
 	var info: Dictionary = Story.CHARS.get(who, Story.CHARS["narrador"])
 	var is_narration: bool = who == "narrador" or String(info.name).is_empty()
 
@@ -424,16 +485,8 @@ func _process(delta: float) -> void:
 
 ## Reproduce un voice-blip cada 3 caracteres revelados (saltando espacios y
 ## puntuación), con el tono del hablante actual. Barato y no cansa.
-func _emit_blips(from: int, to: int) -> void:
-	if _who == "narrador":
-		return
-	for i in range(from, to):
-		if i % 3 != 0 or i >= _full.length():
-			continue
-		var ch := _full[i]
-		if ch == " " or ch == "\n" or ch == "\t" or ch == "." or ch == "," or ch == "—":
-			continue
-		Global.play_voice(_who)
+func _emit_blips(_from: int, _to: int) -> void:
+	pass   # voice-blips DESACTIVADOS a petición del usuario (sonaban mal)
 
 
 func _finish_typing() -> void:
@@ -451,6 +504,13 @@ func _finish_typing() -> void:
 func _input(event: InputEvent) -> void:
 	if _choosing:
 		return
+	# No robar el clic/toque que cae sobre el botón "Saltar ⏭" (debe llegar al botón).
+	if _skip_btn != null and _skip_btn.visible \
+			and (event is InputEventMouseButton or event is InputEventScreenTouch):
+		var p: Vector2 = (event as InputEventMouseButton).position if event is InputEventMouseButton \
+			else (event as InputEventScreenTouch).position
+		if _skip_btn.get_global_rect().has_point(p):
+			return
 	if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
 			or (event is InputEventScreenTouch and event.pressed):
 		get_viewport().set_input_as_handled()

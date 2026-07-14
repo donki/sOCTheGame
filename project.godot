@@ -8,7 +8,7 @@ config_version=5
 
 config/name="sOC"
 config/description="Novela visual de misterio urbano: dialogos entre personajes y mapa de la ciudad."
-config/version="0.3.3"
+config/version="2026.07.14.1"
 run/main_scene="res://scenes/SplashIntro.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"

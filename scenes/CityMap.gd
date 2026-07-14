@@ -11,6 +11,7 @@ var _map_bg: Control          # dibujo procedural o imagen del mapa
 var _pins: Dictionary = {}    # id -> {btn, label, point:Vector2}
 var _token: Panel             # ficha de la detective sobre el mapa
 var _nb_btn: Button           # botón de la libreta (destino de la animación de pistas)
+var _skip_btn: Button         # botón "Saltar tutorial" (solo visible en el Cap. 0)
 var _coach: Control           # coach-mark del tutorial (flecha + cartel señalando el pin)
 var _coach_sign: Panel
 var _coach_label: Label
@@ -20,6 +21,8 @@ var _objective: Label
 var _toast: Label
 var _notebook: Panel
 var _notebook_label: Label
+var _board_area: Control      # (obsoleto) zona del panel de pistas antiguo
+var _board: Control           # instancia del TABLERO (EvidenceBoard) abierto, si lo hay
 var _busy := false
 var _current := Vector2(-1, -1)
 var _shown: Dictionary = {}     # localizaciones ya reveladas (para avisar de nuevas)
@@ -36,7 +39,6 @@ func _ready() -> void:
 	_build_hud()
 	_build_pins()
 	_build_token()
-	_build_notebook()
 	_build_coach()
 	Music.play_mood(_map_mood())
 	get_viewport().size_changed.connect(_relayout)
@@ -106,6 +108,7 @@ func _build_hud() -> void:
 	_title.text = Global.loc(Story.chapter_title())
 	_title.position = Vector2(22, 10)
 	Global.style_subtitle(_title, 18)
+	_title.add_theme_font_override("font", load(Global.FONT_BODY_PATH))   # fuente de los diálogos
 	add_child(_title)
 
 	_objective = Label.new()
@@ -114,20 +117,32 @@ func _build_hud() -> void:
 	_objective.add_theme_color_override("font_color", Global.COL_WARM)
 	add_child(_objective)
 
-	var nb := _mini_button("Libreta (N)", func() -> void: _toggle_notebook(), "res://assets/ui/ic_libreta.png")
+	var nb := _mini_button("Tablero (N)", func() -> void: _toggle_notebook(), "res://assets/ui/ic_libreta.png")
 	nb.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	nb.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	nb.offset_left = -120
+	nb.offset_left = -116
+	nb.offset_right = -72
 	nb.offset_top = 14
+	nb.offset_bottom = 52
 	add_child(nb)
 	_nb_btn = nb
 
 	var menu := _mini_button("Menú (Esc)", func() -> void: Global.change_scene("res://scenes/MainMenu.tscn"), "res://assets/ui/ic_menu.png")
 	menu.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	menu.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	menu.offset_left = -62
+	menu.offset_left = -58
+	menu.offset_right = -14
 	menu.offset_top = 14
+	menu.offset_bottom = 52
 	add_child(menu)
+
+	# Botón "Saltar tutorial": solo durante el Cap. 0. Icono acorde (sin texto). Salta al Cap. 1.
+	_skip_btn = _mini_button("Saltar tutorial", func() -> void: _confirm_skip_tutorial(), "res://assets/ui/ic_saltar.png")
+	_skip_btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_skip_btn.offset_left = -170
+	_skip_btn.offset_right = -126
+	_skip_btn.offset_top = 14
+	_skip_btn.offset_bottom = 52
+	_skip_btn.visible = Global.chapter == 0
+	add_child(_skip_btn)
 
 	_toast = Label.new()
 	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -218,6 +233,8 @@ func _pin_style(state: String, hover: bool) -> StyleBoxFlat:
 
 
 func _refresh() -> void:
+	if is_instance_valid(_skip_btn):
+		_skip_btn.visible = Global.chapter == 0
 	var newly: Array = []
 	for loc in Story.locations():
 		var id: String = loc.id
@@ -284,11 +301,15 @@ func _tutorial_objective() -> String:
 	if not Global.has_flag("done_brief0"):
 		return Global.loc("▸ TUTORIAL: toca la COMISARÍA (el punto que parpadea) para empezar.")
 	if not Global.has_flag("done_l0a"):
-		return Global.loc("▸ TUTORIAL: toca la PLAZA para conseguir tu primera pista.")
+		return Global.loc("▸ TUTORIAL · BÚSQUEDA: toca la PLAZA y busca la pista en el escenario.")
+	if not Global.has_flag("done_rh0"):
+		return Global.loc("▸ TUTORIAL · EXAMINAR: toca el CALLEJÓN y examina el detalle con zoom.")
 	if not Global.has_flag("done_l0b"):
-		return Global.loc("▸ TUTORIAL: toca la TIENDA para la 2ª pista.  (El CALLEJÓN es opcional: enseña las falsas.)")
+		return Global.loc("▸ TUTORIAL · PUZZLE: toca la TIENDA y abre el cajón con el código.")
+	if not Global.has_flag("done_l0c"):
+		return Global.loc("▸ TUTORIAL · PRESENTAR PRUEBA: toca el INTERROGATORIO y pilla la mentira.")
 	if not Global.has_flag("cap0_completo"):
-		return Global.loc("▸ TUTORIAL: ya tienes las pistas. Toca el ARCHIVO (lugar clave) para resolver.")
+		return Global.loc("▸ TUTORIAL · DEDUCCIÓN: toca el ARCHIVO y deduce la conclusión.")
 	if not Global.has_flag("done_cierre0"):
 		return Global.loc("▸ TUTORIAL: caso resuelto. Toca la COMISARÍA para informar y terminar.")
 	return Global.loc("▸ TUTORIAL completado. Empieza el Caso 1...")
@@ -370,7 +391,9 @@ func _tutorial_target_pin() -> String:
 		return ""
 	if not Global.has_flag("done_brief0"): return "brief0"
 	if not Global.has_flag("done_l0a"):    return "l0a"
+	if not Global.has_flag("done_rh0"):    return "rh0"
 	if not Global.has_flag("done_l0b"):    return "l0b"
+	if not Global.has_flag("done_l0c"):    return "l0c"
 	if not Global.has_flag("cap0_completo"): return "fin0"
 	if not Global.has_flag("done_cierre0"):  return "cierre0"
 	return ""
@@ -379,6 +402,9 @@ func _tutorial_target_pin() -> String:
 func _update_coach() -> void:
 	if _coach == null:
 		return
+	if _busy:                     # hay una escena abierta: nunca mostrar el coach encima
+		_coach.visible = false
+		return
 	var id := _tutorial_target_pin()
 	if id == "" or not _pins.has(id) or not _pins[id].btn.visible:
 		_coach.visible = false
@@ -386,7 +412,7 @@ func _update_coach() -> void:
 	var pin: Vector2 = _pins[id].point
 	var vp := get_viewport_rect().size
 	var sign_w := 236.0
-	var sign_h := 56.0
+	var sign_h := 66.0
 	var left_side := pin.x > vp.x * 0.5      # pin a la derecha -> cartel a la izquierda, flecha ->
 	if left_side:
 		_coach_arrow.scale.x = 1.0
@@ -402,7 +428,7 @@ func _update_coach() -> void:
 	_coach_sign.position = sp
 	_coach_sign.size = Vector2(sign_w, sign_h)
 	var nm := Global.loc(_loc_name(id))
-	_coach_label.text = (Global.loc("¡Empieza aquí!  Toca la %s") % nm) if id == "brief0" else (Global.loc("Toca la %s") % nm)
+	_coach_label.text = (Global.loc("¡Empieza aquí! ▸ %s") % nm) if id == "brief0" else (Global.loc("Toca aquí ▸ %s") % nm)
 	_coach.visible = true
 
 
@@ -442,6 +468,8 @@ func _on_pin(id: String) -> void:
 func _travel_to(id: String) -> void:
 	_busy = true
 	_set_pins_enabled(false)
+	if is_instance_valid(_coach):
+		_coach.visible = false   # el coach-mark desaparece al viajar/abrir la escena
 	var dest: Vector2 = _pins[id].point
 	var origin := _current
 	var first := origin.x < 0
@@ -493,10 +521,48 @@ func _ping_at(pos: Vector2) -> void:
 
 func _open_dialogue(id: String) -> void:
 	Music.play_mood(_dialogue_mood())   # ambiente más íntimo/tenso durante la escena
+	# La PRIMERA visita a una localización con interacción abre su mini-escena jugable
+	# (búsqueda, examinar, puzzle, presentar prueba, deducir). En los casos reales, las
+	# escenas de BÚSQUEDA encadenan luego el diálogo (then_dialogue) para no perder la
+	# narrativa: buscas la pista en el escenario y después hablas con quien toque.
+	var idata := Story.interact_data(id)
+	if not idata.is_empty() and not Global.has_flag("done_" + id) \
+			and not Global.has_flag(String(idata.get("flag", ""))):
+		var view := _make_interaction(idata)
+		if view != null:
+			view.z_index = 100   # por encima del HUD del mapa (barra, pines, coach)
+			add_child(view)
+			view.connect("finished", _on_interaction_finished.bind(id))
+			view.call("start", idata)
+			return
+	_open_dialogue_view(id)
+
+
+func _open_dialogue_view(id: String) -> void:
 	var dv := DialogueView.new()
 	add_child(dv)
 	dv.finished.connect(_on_dialogue_finished.bind(id))
 	dv.start(Story.get_dialogue(id))
+
+
+## Fin de una mini-escena. Si encadena diálogo (búsquedas de casos reales), lo abre
+## a continuación (sigue "ocupado"; _on_dialogue_finished limpiará el estado). Si no
+## (tutorial, presentar, deducir), cierra como siempre.
+func _on_interaction_finished(result: Dictionary, id: String) -> void:
+	if Story.interact_data(id).get("then_dialogue", false):
+		_open_dialogue_view(id)
+	else:
+		_on_dialogue_finished(result, id)
+
+
+func _make_interaction(d: Dictionary) -> Control:
+	match String(d.get("type", "")):
+		"search":  return SearchView.new()
+		"examine": return ExamineView.new()
+		"puzzle":  return PuzzleView.new()
+		"present": return PresentView.new()
+		"deduce":  return DeduceView.new()
+	return null
 
 
 func _on_dialogue_finished(result: Dictionary, _id: String) -> void:
@@ -519,6 +585,29 @@ func _on_dialogue_finished(result: Dictionary, _id: String) -> void:
 		_show_toast(msg, Color(0.85, 0.45, 0.45))
 	elif String(result.get("flag", "")) == Story.complete_flag():
 		_show_toast(Global.loc("Caso resuelto."), Color(0.6, 0.9, 0.65))
+
+
+## Pide confirmación antes de saltar el tutorial (evita saltos accidentales).
+func _confirm_skip_tutorial() -> void:
+	var d := ConfirmationDialog.new()
+	d.title = Global.loc("Saltar tutorial")
+	d.dialog_text = Global.loc("¿Saltar el tutorial y empezar el primer caso?")
+	d.ok_button_text = Global.loc("Saltar")
+	d.get_cancel_button().text = Global.loc("Seguir")
+	add_child(d)
+	d.confirmed.connect(_skip_tutorial)
+	d.confirmed.connect(d.queue_free)
+	d.canceled.connect(d.queue_free)
+	d.popup_centered()
+
+
+## Marca el tutorial como completado y salta al primer caso real (Cap. 1).
+func _skip_tutorial() -> void:
+	Global.set_flag("cap0_completo", true)
+	Global.set_flag("done_cierre0", true)
+	if is_instance_valid(_skip_btn):
+		_skip_btn.visible = false
+	_advance_chapter()   # 0 -> 1: reconstruye el mapa y guarda
 
 
 func _advance_chapter() -> void:
@@ -586,7 +675,8 @@ func _fly_clue_to_notebook(is_false: bool, delay: float = 0.0) -> void:
 	t.tween_property(card, "modulate:a", 0.75, 0.14)
 	# 2) vuela hasta la libreta SIN desvanecerse por el camino: llega de verdad
 	t.tween_property(card, "position", target, 0.60).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	t.parallel().tween_property(card, "scale", Vector2(0.5, 0.5), 0.60)
+	# Encoge más al llegar para que quede DENTRO del botón de la libreta (antes sobresalía).
+	t.parallel().tween_property(card, "scale", Vector2(0.34, 0.34), 0.60)
 	# 3) al LLEGAR a la libreta: pulso del icono (solo pistas buenas) y se desvanece ahí mismo
 	if not is_false:
 		t.tween_callback(_pulse_notebook)
@@ -676,10 +766,15 @@ func _build_notebook() -> void:
 
 
 func _toggle_notebook() -> void:
-	_notebook.visible = not _notebook.visible
-	if _notebook.visible:
-		Global.play_sfx(Global.SFX_NOTE, -2.0)
-		_refresh_notebook()
+	# Abre/cierra el TABLERO de pistas dinámico (EvidenceBoard).
+	if is_instance_valid(_board):
+		_board.queue_free()
+		_board = null
+		return
+	Global.play_sfx(Global.SFX_NOTE, -2.0)
+	_board = EvidenceBoard.new()
+	_board.z_index = 110
+	add_child(_board)
 
 
 func _refresh_notebook() -> void:
@@ -720,7 +815,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _busy:
 		return
 	if event.is_action_pressed("pause"):
-		if _notebook.visible:
+		if is_instance_valid(_board):
 			_toggle_notebook()
 		else:
 			Global.change_scene("res://scenes/MainMenu.tscn")

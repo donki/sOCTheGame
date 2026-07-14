@@ -184,12 +184,13 @@ func _build_fx() -> void:
 	fx.add_child(scrim)
 
 	_caption = Label.new()
-	_caption.text = Global.loc("La ciudad llama a los suyos...")
+	_caption.text = Global.loc("La ciudad esconde algo bajo la lluvia.")
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_caption.offset_top = -108
 	_caption.offset_bottom = -70
-	Global.style_tagline(_caption, 30)
+	Global.style_tagline(_caption, 34)
+	_caption.add_theme_color_override("font_color", Global.COL_WARM)
 	_caption.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
 	_caption.add_theme_constant_override("outline_size", 6)
 	_caption.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
