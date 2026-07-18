@@ -33,17 +33,17 @@ var settings := {
 
 # --- Localización (i18n) -------------------------------------------------------
 # El TEXTO original está en español; la traducción se busca por el propio texto es
-# en tablas cargadas de assets/i18n/. Si falta, cae a español. Idiomas: es/en/zh.
-const LANGUAGES := ["es", "en", "zh"]
-const LANG_NAMES := {"es": "Español", "en": "English", "zh": "简体中文"}
+# en tablas cargadas de assets/i18n/. Si falta, cae a español. Idiomas oficiales del
+# proyecto: castellano (es) e inglés (en). Ver constitución (idiomas oficiales).
+const LANGUAGES := ["es", "en"]
+const LANG_NAMES := {"es": "Español", "en": "English"}
 # Banderas del selector de idioma (imagenes; los emoji de bandera no se renderizan
 # como banderas en Windows/Godot). Dominio publico (banderas nacionales) -> ADR-040.
 const LANG_FLAGS := {
 	"es": "res://assets/ui/flag_es.png",
 	"en": "res://assets/ui/flag_en.png",
-	"zh": "res://assets/ui/flag_zh.png",
 }
-var _tr := {"en": {}, "zh": {}}   # lang -> {texto_es: traducción}
+var _tr := {"en": {}}   # lang -> {texto_es: traducción}
 
 func language() -> String:
 	return String(settings.get("language", "es"))
@@ -60,7 +60,7 @@ func loc(s: String) -> String:
 	return String(_tr[lang].get(s, s))
 
 func _load_translations() -> void:
-	for lang in ["en", "zh"]:
+	for lang in ["en"]:
 		_tr[lang] = {}
 		for fname in ["ui_%s.json" % lang, "dlg_%s.json" % lang]:
 			var path: String = "res://assets/i18n/" + fname
@@ -85,41 +85,59 @@ var _fade: ColorRect
 var _sfx_pool: Array = []
 var _sfx_idx := 0
 
-# --- Voice blips (voz estilizada por personaje, generativa, sin ficheros) ---
-# Cada personaje tiene una VOZ distinta: no solo tono, sino timbre propio (color
-# vocal por formante, cantidad de zumbido y velocidad de caída). Se sintetiza un
-# WAV por personaje la primera vez y se cachea.
-var _voice_pool: Array = []
-var _voice_idx := 0
-var _voice_cache: Dictionary = {}
-var voices_enabled := true
-
-# --- TTS real (voces del sistema: Windows SAPI / Android TTS) ---
-# Si hay TTS disponible, las líneas de diálogo se LEEN con una voz distinta por
-# personaje (voz del sistema por género + tono + velocidad propios). Reemplaza a los blips.
-var tts_available := false
-var _tts_all: Array = []         # todas las voces disponibles (fallback)
-var _tts_male: Array = []        # voces masculinas (español si las hay)
-var _tts_female: Array = []      # voces femeninas
-# Personajes con voz femenina (el resto = masculina). El tono fino lo da VOICE_PITCH.
-const VOICE_FEMALE := ["detective", "rosa", "carmen", "marta", "laura", "clara", "sonia",
-	"adler", "madame", "periodista", "testigo", "anonimo"]
-# Tono base por personaje (1.0 = timbre base ~1150 Hz). Graves los hombres mayores,
-# agudos las voces jóvenes/femeninas. Los que falten usan un tono estable por hash.
-const VOICE_PITCH := {
-	"detective": 1.14, "nunez": 0.72, "diego": 1.02, "clara": 1.22, "sonia": 1.30,
-	"periodista": 1.18, "ruben": 0.66, "marco": 0.90, "adler": 1.08, "testigo": 1.30,
-	"kessler": 0.86, "comisario": 0.80, "magnate": 0.74, "vidal": 0.84, "emilio": 0.80,
-	"rosa": 1.26, "tomas": 0.88, "carmen": 1.00, "marta": 1.24, "laura": 1.20,
-	"padre": 0.82, "nano": 0.92, "corredor": 0.86, "madame": 1.05, "chivato": 1.00,
-	"voluntario": 0.95, "contable": 0.90, "anonimo": 0.96, "encapuchado": 0.68, "sospechoso": 0.88,
-}
+# Los diálogos NO llevan voz: ni blips sintetizados, ni TTS del sistema, ni audio
+# pregrabado. Se probaron los tres (ver bitácora, 2026-07-14/15) y ninguno convencía:
+# el diálogo se lee con la máquina de escribir y su SFX, y ya está.
 
 # --- Caso / libreta de pistas ---
 var chapter: int = 1       # capítulo actual (1..3)
 var clues: Array = []      # [{title, text}]
 var flags: Dictionary = {} # banderas de progreso (done_emilio, cap1_completo, ...)
 var met_chars: Array = []  # claves CHARS de personajes conocidos (para el tablero dinámico)
+
+## Modo herramienta: los scripts de tools/ recorren la historia mutando este
+## singleton (reset_case, chapter, set_flag). Como set_flag/add_clue persisten,
+## una ejecución de tools/ machacaba user://savegame.json con flags sin pistas y
+## dejaba el tablero mostrando solo escenas. Con esto, save_game() no escribe.
+var tool_mode := false
+
+## Acentos/eñe -> ASCII, para que el nombre de fichero sea legible y portable.
+const _SLUG_ASCII := {
+	"á": "a", "à": "a", "ä": "a", "â": "a", "é": "e", "è": "e", "ë": "e", "ê": "e",
+	"í": "i", "ì": "i", "ï": "i", "î": "i", "ó": "o", "ò": "o", "ö": "o", "ô": "o",
+	"ú": "u", "ù": "u", "ü": "u", "û": "u", "ñ": "n", "ç": "c",
+}
+
+## Nombre de fichero de una pista a partir de su TÍTULO: "El pañuelo" -> "el-panuelo".
+## Es la clave de assets/objects/<slug>.png y la comparte tools/gen_objects.py, que
+## replica esta misma función en Python. El título siempre está en español (la
+## traducción ocurre al pintar, con loc()), así que el slug no depende del idioma.
+static func clue_slug(title: String) -> String:
+	var out := ""
+	for ch in title.to_lower():
+		if _SLUG_ASCII.has(ch):
+			out += String(_SLUG_ASCII[ch])
+		elif (ch >= "a" and ch <= "z") or (ch >= "0" and ch <= "9"):
+			out += ch
+		else:
+			out += "-"
+	while out.contains("--"):
+		out = out.replace("--", "-")
+	out = out.lstrip("-").rstrip("-")
+	if out.length() > 48:
+		out = out.substr(0, 48)
+	return out.rstrip("-")
+
+
+## Ruta de la foto de objeto de una pista, o "" si esa pista no tiene foto (los
+## conceptos abstractos no la tienen: solo se fotografían las pruebas tangibles).
+## La usan el tablero (polaroid) y el diálogo (destello al descubrirla).
+static func clue_image(title: String) -> String:
+	if title == "":
+		return ""
+	var p := "res://assets/objects/%s.png" % clue_slug(title)
+	return p if ResourceLoader.exists(p) else ""
+
 
 func add_clue(title: String, text: String, is_false: bool = false) -> bool:
 	for c in clues:
@@ -153,6 +171,8 @@ func note_char(who: String) -> void:
 
 # --- Guardado del progreso del caso (capítulo + pistas + banderas) ---
 func save_game() -> void:
+	if tool_mode:
+		return           # tools/: nunca tocar la partida del jugador
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		return
@@ -189,8 +209,6 @@ func _ready() -> void:
 	_register_input_actions()
 	_build_fade_layer()
 	_build_sfx()
-	_build_voice()
-	_init_tts()
 	font_title = load(FONT_TITLE_PATH)
 	font_accent = load(FONT_ACCENT_PATH)
 	_setup_cjk_fallback()
@@ -270,164 +288,6 @@ func play_footstep() -> void:
 	play_sfx(SFX_FOOTSTEP % (randi() % 10), -7.0)
 
 
-# --- VOICE BLIPS -----------------------------------------------------------
-## Voz estilizada por personaje (estilo Ace Attorney/Undertale, sin TTS ni ficheros):
-## se reproduce un blip corto por cada pocos caracteres al escribir el diálogo. Cada
-## personaje suena DISTINTO porque su blip se sintetiza con parámetros propios
-## (tono base, color vocal por formante, zumbido y caída). El narrador no lleva voz.
-func _build_voice() -> void:
-	for i in 5:
-		var p := AudioStreamPlayer.new()
-		add_child(p)
-		_voice_pool.append(p)
-
-
-func _voice_pitch(who: String) -> float:
-	if VOICE_PITCH.has(who):
-		return VOICE_PITCH[who]
-	return 0.80 + float(abs(who.hash()) % 60) / 100.0       # 0.80..1.39 estable por personaje
-
-
-# Vocales por formantes (F1,F2 en Hz). Cada personaje habla en una vocal distinta.
-const VOWELS := [
-	[720.0, 1240.0],   # /a/
-	[530.0, 1840.0],   # /e/
-	[390.0, 2300.0],   # /i/
-	[490.0, 900.0],    # /o/
-	[350.0, 760.0],    # /u/
-	[620.0, 1500.0],   # /ae/
-]
-
-## Parámetros de voz por personaje: [f0 Hz (fundamental GRAVE de voz), F1, F2, caída, glissando].
-## f0 sale del tono curado (VOICE_PITCH) mapeado a rango de voz humana; la vocal y el resto,
-## estables por el nombre. La clave para que suene a voz (no a pitido) es f0 bajo + formantes.
-func _voice_params(who: String) -> Array:
-	var f0: float = clampf(150.0 * _voice_pitch(who), 82.0, 245.0)   # ~100 (hombre) .. 240 (mujer)
-	var h: int = abs(who.hash())
-	var v: Array = VOWELS[h % VOWELS.size()]
-	var decay: float = 13.0 + float((h / 6) % 5) * 2.4               # 13..23 (sílaba corta)
-	var glide: float = (float((h / 30) % 5) - 2.0) * 0.05            # -0.10..+0.10 (entonación)
-	return [f0, v[0], v[1], decay, glide]
-
-
-## Sintetiza (y cachea) el blip de un personaje por FORMANTES: fuente glótica (diente de
-## sierra rica en armónicos) a f0 grave, filtrada por dos resonadores (F1, F2) que dan el
-## color de vocal, con ataque suave, caída y un leve glissando. Suena a sílaba, no a pitido.
-func _blip_for(who: String) -> AudioStreamWAV:
-	if _voice_cache.has(who):
-		return _voice_cache[who]
-	var pr := _voice_params(who)
-	var f0: float = pr[0]; var f1: float = pr[1]; var f2: float = pr[2]
-	var decay: float = pr[3]; var glide: float = pr[4]
-	var rate := 22050
-	var dur := 0.11
-	var n := int(dur * rate)
-	# Resonadores de 2 polos (uno por formante). r cerca de 1 = resonancia estrecha.
-	var r1: float = exp(-PI * 110.0 / rate); var c1: float = 2.0 * r1 * cos(TAU * f1 / rate)
-	var r2: float = exp(-PI * 130.0 / rate); var c2: float = 2.0 * r2 * cos(TAU * f2 / rate)
-	var y1a := 0.0; var y1b := 0.0; var y2a := 0.0; var y2b := 0.0
-	var phase := 0.0
-	var data := PackedByteArray()
-	data.resize(n * 2)
-	for i in n:
-		var t := float(i) / rate
-		var f := f0 * (1.0 + glide * (t / dur))          # entonación (glissando)
-		phase += f / rate
-		if phase >= 1.0:
-			phase -= 1.0
-		var src: float = 2.0 * phase - 1.0               # diente de sierra (glotis)
-		# F1
-		var o1: float = (1.0 - r1) * src + c1 * y1a - r1 * r1 * y1b
-		y1b = y1a; y1a = o1
-		# F2
-		var o2: float = (1.0 - r2) * src + c2 * y2a - r2 * r2 * y2b
-		y2b = y2a; y2a = o2
-		var env: float = minf(1.0, t / 0.008) * exp(-t * decay)   # ataque 8ms + caída
-		var val: float = (0.85 * o1 + 0.55 * o2 + 0.10 * src) * env * 0.9
-		data.encode_s16(i * 2, int(clampf(val, -1.0, 1.0) * 32767.0))
-	var wav := AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_16_BITS
-	wav.mix_rate = rate
-	wav.stereo = false
-	wav.data = data
-	_voice_cache[who] = wav
-	return wav
-
-
-func play_voice(who: String) -> void:
-	if not voices_enabled or who == "" or who == "narrador" or _voice_pool.is_empty():
-		return
-	var p: AudioStreamPlayer = _voice_pool[_voice_idx]
-	_voice_idx = (_voice_idx + 1) % _voice_pool.size()
-	p.stream = _blip_for(who)
-	p.pitch_scale = 1.0 + randf_range(-0.04, 0.04)          # micro-variación viva
-	p.volume_db = -13.0
-	p.play()
-
-
-# --- TTS ---------------------------------------------------------------------
-## Detecta el TTS del sistema y clasifica las voces por género (español preferente).
-func _init_tts() -> void:
-	if not DisplayServer.has_feature(DisplayServer.FEATURE_TEXT_TO_SPEECH):
-		return
-	var voices: Array = DisplayServer.tts_get_voices()      # [{id,name,language}, ...]
-	var fem_markers := ["helena", "laura", "zira", "sabina", "hazel", "eva", "elvira", "maria", "paulina", "monica"]
-	var es_m: Array = []; var es_f: Array = []; var any_m: Array = []; var any_f: Array = []
-	for v in voices:
-		var id := String((v as Dictionary).get("id", ""))
-		if id == "":
-			continue
-		_tts_all.append(id)
-		var nm := String((v as Dictionary).get("name", "")).to_lower()
-		var female := false
-		for m in fem_markers:
-			if nm.contains(m):
-				female = true
-				break
-		var es := String((v as Dictionary).get("language", "")).to_lower().begins_with("es")
-		if female:
-			any_f.append(id)
-			if es: es_f.append(id)
-		else:
-			any_m.append(id)
-			if es: es_m.append(id)
-	# Preferir voces en español si hay alguna.
-	if not es_m.is_empty() or not es_f.is_empty():
-		_tts_male = es_m; _tts_female = es_f
-	else:
-		_tts_male = any_m; _tts_female = any_f
-	tts_available = not _tts_all.is_empty()
-
-
-## Voz TTS por personaje: [voice_id, tono, velocidad]. Elige voz por GÉNERO (set
-## VOICE_FEMALE + tono), y varía tono/velocidad de forma estable por el nombre.
-func _tts_voice_for(who: String) -> Array:
-	var h: int = abs(who.hash())
-	var female: bool = who in VOICE_FEMALE or _voice_pitch(who) >= 1.18
-	var pool: Array = _tts_female if female else _tts_male
-	if pool.is_empty():
-		pool = _tts_male if not _tts_male.is_empty() else _tts_female
-	if pool.is_empty():
-		pool = _tts_all
-	var voice: String = pool[h % pool.size()] if not pool.is_empty() else ""
-	var pitch: float = clampf(_voice_pitch(who), 0.6, 1.8)
-	var rate: float = 0.90 + float((h / 7) % 6) * 0.05      # 0.90..1.15 velocidad propia
-	return [voice, pitch, rate]
-
-
-## Lee una línea con la voz del personaje (corta la anterior). El narrador no se lee.
-func speak_line(who: String, text: String) -> void:
-	if not tts_available or not voices_enabled or who == "" or who == "narrador":
-		return
-	if text.strip_edges() == "":
-		return
-	var vp := _tts_voice_for(who)
-	DisplayServer.tts_speak(text, String(vp[0]), 60, float(vp[1]), float(vp[2]), 0, true)
-
-
-func stop_speaking() -> void:
-	if tts_available:
-		DisplayServer.tts_stop()
 
 
 ## Registra acciones en runtime para no depender de la serializacion del

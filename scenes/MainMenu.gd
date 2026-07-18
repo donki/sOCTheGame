@@ -8,6 +8,7 @@ const MIX := 22050.0
 
 var _rain: CPUParticles2D
 var _options: Control
+var _about: Control
 var _first_button: Button
 
 # Tormenta (lluvia + rayos + truenos)
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_build_center()
 	_build_footer()
 	_build_options_overlay()
+	_build_about_overlay()
 	_build_storm()
 	Music.play_mood("noir")   # música noir bajo la tormenta (autoload persistente)
 	get_viewport().size_changed.connect(_on_resized)
@@ -409,9 +411,87 @@ func _build_options_overlay() -> void:
 		lang_row.add_child(lb)
 	vb.add_child(lang_row)
 
+	var about_btn := _make_button("Acerca de", _on_about)
+	about_btn.custom_minimum_size = Vector2(0, 42)
+	vb.add_child(about_btn)
+
 	var close := _make_button("Volver", _hide_options)
 	close.custom_minimum_size = Vector2(0, 46)
 	vb.add_child(close)
+
+
+func _build_about_overlay() -> void:
+	_about = Control.new()
+	_about.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_about.visible = false
+	add_child(_about)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.7)
+	_about.add_child(dim)
+
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.anchor_left = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_bottom = 0.5
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var ps := StyleBoxFlat.new()
+	ps.bg_color = Color(0.06, 0.07, 0.10, 0.98)
+	ps.set_corner_radius_all(10)
+	ps.set_border_width_all(2)
+	ps.border_color = Global.COL_ACCENT_DIM
+	ps.set_content_margin_all(26)
+	panel.add_theme_stylebox_override("panel", ps)
+	_about.add_child(panel)
+
+	var vb := VBoxContainer.new()
+	vb.custom_minimum_size = Vector2(500, 0)
+	vb.add_theme_constant_override("separation", 12)
+	panel.add_child(vb)
+
+	var head := Label.new()
+	head.text = "sOCratic"
+	head.add_theme_font_override("font", Global.font_title)
+	head.add_theme_font_size_override("font_size", 34)
+	head.add_theme_color_override("font_color", Global.COL_WARM)
+	vb.add_child(head)
+
+	var rt := RichTextLabel.new()
+	rt.bbcode_enabled = true
+	rt.fit_content = true
+	rt.scroll_active = false
+	rt.custom_minimum_size = Vector2(500, 0)
+	rt.add_theme_color_override("default_color", Global.COL_TEXT)
+	rt.add_theme_font_size_override("normal_font_size", 15)
+	rt.add_theme_font_size_override("bold_font_size", 16)
+	rt.text = ("[b]sOC[/b] — novela visual de misterio noir.\n"
+		+ "Creado por Josep Solà · [i]sOCratic[/i].\n\n"
+		+ "[b]Privacidad[/b]\n"
+		+ "sOC guarda tu partida únicamente en tu dispositivo. No recopila ni comparte datos personales con terceros.\n\n"
+		+ "[b]Licencia[/b]\n"
+		+ "sOC es software libre distribuido bajo licencia MIT. Copyright © 2026 Socratic.\n"
+		+ "• Arte: generado por IA (Pollinations · modelos Flux) y reescalado con Real-ESRGAN.\n"
+		+ "• Tipografías y efectos de sonido: Kenney (CC0).\n"
+		+ "• Voces: Microsoft Edge TTS (español) / TTS del sistema del dispositivo.\n"
+		+ "• Motor: Godot Engine (MIT).\n\n"
+		+ "[b]Aviso legal[/b]\n"
+		+ "Este software se proporciona «tal cual», sin garantías de ningún tipo. Es una obra de ficción: cualquier parecido con personas o hechos reales es pura coincidencia. Uso bajo tu propia responsabilidad.\n\n"
+		+ "[b]Apóyame[/b]  [url=https://ko-fi.com/josepsola]ko-fi.com/josepsola[/url]\n"
+		+ "[b]Contacto[/b]  [url=mailto:jsoladelarosa@gmail.com]jsoladelarosa@gmail.com[/url]")
+	rt.meta_clicked.connect(func(meta: Variant) -> void: OS.shell_open(str(meta)))
+	vb.add_child(rt)
+
+	var kofi := _make_button("Apóyame en Ko-fi", func() -> void: OS.shell_open("https://ko-fi.com/josepsola"))
+	kofi.custom_minimum_size = Vector2(0, 44)
+	vb.add_child(kofi)
+
+	var back := _make_button("Volver", _hide_about)
+	back.custom_minimum_size = Vector2(0, 44)
+	vb.add_child(back)
 
 
 func _slider_row(label_text: String, key: String) -> HBoxContainer:
@@ -455,6 +535,16 @@ func _hide_options() -> void:
 	_options.visible = false
 	if _first_button:
 		_first_button.grab_focus()
+
+
+func _on_about() -> void:
+	_options.visible = false
+	_about.visible = true
+
+
+func _hide_about() -> void:
+	_about.visible = false
+	_options.visible = true
 
 
 func _on_quit() -> void:

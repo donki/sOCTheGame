@@ -569,10 +569,23 @@ func _on_dialogue_finished(result: Dictionary, _id: String) -> void:
 	_busy = false
 	_set_pins_enabled(true)
 	Music.play_mood(_map_mood())        # de vuelta al ambiente del mapa
-	# ¿Se ha cerrado el capítulo? Avanzar al siguiente y reconstruir el mapa.
-	if Global.has_flag(Story.end_flag()) and not Story.is_last_chapter():
-		_advance_chapter()
-		return
+	# ¿Se ha cerrado el capítulo? Al terminarlo mostramos el panel de apoyo (Ko-fi)
+	# y, al continuar, avanzamos al siguiente capítulo (o cerramos si era el último).
+	if Global.has_flag(Story.end_flag()):
+		var kofi_flag := "kofi_%d" % Global.chapter
+		# El capítulo 0 es el tutorial: no interrumpimos con el panel de apoyo ahí.
+		if Global.chapter >= 1 and not Global.has_flag(kofi_flag):
+			Global.set_flag(kofi_flag, true)
+			var was_last := Story.is_last_chapter()
+			_show_kofi_support(func() -> void:
+				if not was_last:
+					_advance_chapter()
+				else:
+					_refresh())
+			return
+		elif not Story.is_last_chapter():
+			_advance_chapter()
+			return
 	_refresh()
 	var fc: int = result.get("false_count", 0)
 	if result.get("clue") != null and not (result.clue as Dictionary).get("false", false):
@@ -588,17 +601,178 @@ func _on_dialogue_finished(result: Dictionary, _id: String) -> void:
 
 
 ## Pide confirmación antes de saltar el tutorial (evita saltos accidentales).
+## Overlay propio, con el mismo lenguaje que el resto de paneles del juego (fondo
+## atenuado + panel oscuro con borde de acento): un ConfirmationDialog sale con el
+## tema por defecto de Godot y desentona con todo lo demás.
 func _confirm_skip_tutorial() -> void:
-	var d := ConfirmationDialog.new()
-	d.title = Global.loc("Saltar tutorial")
-	d.dialog_text = Global.loc("¿Saltar el tutorial y empezar el primer caso?")
-	d.ok_button_text = Global.loc("Saltar")
-	d.get_cancel_button().text = Global.loc("Seguir")
-	add_child(d)
-	d.confirmed.connect(_skip_tutorial)
-	d.confirmed.connect(d.queue_free)
-	d.canceled.connect(d.queue_free)
-	d.popup_centered()
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 120
+	add_child(layer)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP   # el fondo NO deja tocar el mapa
+	layer.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(center)
+
+	var panel := PanelContainer.new()
+	var ps := StyleBoxFlat.new()
+	ps.bg_color = Color(0.06, 0.07, 0.10, 0.98)
+	ps.set_corner_radius_all(10)
+	ps.set_border_width_all(2)
+	ps.border_color = Global.COL_ACCENT_DIM
+	ps.set_content_margin_all(26)
+	panel.add_theme_stylebox_override("panel", ps)
+	center.add_child(panel)
+
+	var vb := VBoxContainer.new()
+	vb.custom_minimum_size = Vector2(420, 0)
+	vb.add_theme_constant_override("separation", 14)
+	panel.add_child(vb)
+
+	var head := Label.new()
+	head.text = Global.loc("Saltar tutorial")
+	head.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_font_override("font", Global.font_title)
+	head.add_theme_font_size_override("font_size", 26)
+	head.add_theme_color_override("font_color", Global.COL_WARM)
+	vb.add_child(head)
+
+	var body := Label.new()
+	body.text = Global.loc("¿Saltar el tutorial y empezar el primer caso?")
+	body.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_theme_font_size_override("font_size", 15)
+	body.add_theme_color_override("font_color", Global.COL_TEXT)
+	vb.add_child(body)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(row)
+
+	var back := _mini_button("Seguir", func() -> void: layer.queue_free())
+	back.custom_minimum_size = Vector2(150, 40)
+	row.add_child(back)
+
+	var go := _mini_button("Saltar", func() -> void:
+		layer.queue_free()
+		_skip_tutorial())
+	go.custom_minimum_size = Vector2(150, 40)
+	row.add_child(go)
+
+
+## Panel de APOYO (Ko-fi) al cerrar un capítulo. Mantiene el lenguaje visual del juego
+## (fondo atenuado + panel oscuro con borde de acento, tipografía de título) para que la
+## invitación a donar quede integrada y no como un anuncio. Al pulsar "Continuar" ejecuta
+## el callback recibido (avanzar de capítulo o refrescar si era el último).
+const KOFI_URL := "https://ko-fi.com/josepsola"
+
+func _show_kofi_support(on_continue: Callable) -> void:
+	Global.play_sfx(Global.SFX_NOTE, -6.0)
+
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 130
+	add_child(layer)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.78)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(center)
+
+	var panel := PanelContainer.new()
+	var ps := StyleBoxFlat.new()
+	ps.bg_color = Color(0.05, 0.06, 0.09, 0.99)
+	ps.set_corner_radius_all(12)
+	ps.border_width_left = 4
+	ps.border_width_top = 1
+	ps.border_width_right = 1
+	ps.border_width_bottom = 1
+	ps.border_color = Global.COL_WARM
+	ps.set_content_margin_all(30)
+	ps.shadow_color = Color(0, 0, 0, 0.8)
+	ps.shadow_size = 26
+	panel.add_theme_stylebox_override("panel", ps)
+	center.add_child(panel)
+
+	var vb := VBoxContainer.new()
+	vb.custom_minimum_size = Vector2(468, 0)
+	vb.add_theme_constant_override("separation", 16)
+	panel.add_child(vb)
+
+	var mark := Label.new()
+	mark.text = "☕"
+	mark.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	mark.add_theme_font_size_override("font_size", 44)
+	vb.add_child(mark)
+
+	var head := Label.new()
+	head.text = Global.loc("Fin del capítulo")
+	head.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_font_override("font", Global.font_title)
+	head.add_theme_font_size_override("font_size", 28)
+	head.add_theme_color_override("font_color", Global.COL_WARM)
+	vb.add_child(head)
+
+	var body := Label.new()
+	body.text = Global.loc("Gracias por jugar a sOC. Este caso avanza gracias a quienes lo apoyan. Si te está gustando la investigación, puedes invitarme a un café: mantiene viva la ciudad y sus misterios.")
+	body.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.add_theme_font_size_override("font_size", 15)
+	body.add_theme_color_override("font_color", Global.COL_TEXT)
+	vb.add_child(body)
+
+	var link := Label.new()
+	link.text = KOFI_URL
+	link.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	link.add_theme_font_size_override("font_size", 13)
+	link.add_theme_color_override("font_color", Global.COL_ACCENT)
+	vb.add_child(link)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(row)
+
+	var donate := _mini_button("☕  Invítame un café", func() -> void:
+		OS.shell_open(KOFI_URL))
+	donate.custom_minimum_size = Vector2(210, 44)
+	# Resaltar el botón de donar con el color cálido de marca.
+	var db := StyleBoxFlat.new()
+	db.bg_color = Color(0.20, 0.13, 0.07, 0.96)
+	db.set_corner_radius_all(6)
+	db.border_width_left = 3
+	db.border_color = Global.COL_WARM
+	db.set_content_margin_all(8)
+	donate.add_theme_stylebox_override("normal", db)
+	row.add_child(donate)
+
+	var cont := _mini_button("Continuar", func() -> void:
+		layer.queue_free()
+		on_continue.call())
+	cont.custom_minimum_size = Vector2(150, 44)
+	row.add_child(cont)
+
+	panel.modulate.a = 0.0
+	panel.scale = Vector2(0.94, 0.94)
+	panel.pivot_offset = Vector2(234, 140)
+	var t := create_tween().set_parallel(true)
+	t.tween_property(panel, "modulate:a", 1.0, 0.25)
+	t.tween_property(panel, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## Marca el tutorial como completado y salta al primer caso real (Cap. 1).
@@ -774,7 +948,23 @@ func _toggle_notebook() -> void:
 	Global.play_sfx(Global.SFX_NOTE, -2.0)
 	_board = EvidenceBoard.new()
 	_board.z_index = 110
+	_board.case_closed.connect(_on_board_case_closed)
 	add_child(_board)
+
+
+## El jugador ha atado todas las pistas en el tablero: el caso está cerrado. El
+## tablero ya se cierra solo; aquí encadenamos el EPÍLOGO (la comisaría, en el
+## Cap. 1), cuyo diálogo activa el end_flag y dispara el salto de capítulo por la
+## vía de siempre (_on_dialogue_finished). Los capítulos sin epílogo no llegan
+## aquí: su tablero no se juega.
+func _on_board_case_closed() -> void:
+	_board = null
+	var id := Story.epilogue_id()
+	if id == "" or _busy:
+		return
+	_busy = true
+	_set_pins_enabled(false)
+	_open_dialogue_view(id)
 
 
 func _refresh_notebook() -> void:
