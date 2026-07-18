@@ -28,7 +28,7 @@ var settings := {
 	"music_volume": 0.8,
 	"sfx_volume": 0.9,
 	"fullscreen": false,
-	"language": "es",   # es | en | zh
+	"language": "es",   # es | en
 }
 
 # --- Localización (i18n) -------------------------------------------------------
@@ -211,35 +211,19 @@ func _ready() -> void:
 	_build_sfx()
 	font_title = load(FONT_TITLE_PATH)
 	font_accent = load(FONT_ACCENT_PATH)
-	_setup_cjk_fallback()
 	settings["language"] = _detect_language()   # defecto: idioma del dispositivo (o inglés)
 	_load_settings()                            # si el usuario ya eligió, prevalece lo guardado
 	_load_translations()
 	_apply_settings()
 
 
-## Idioma inicial según el dispositivo: es / zh si coinciden (cualquier variante),
+## Idioma inicial según el dispositivo: es si coincide (cualquier variante),
 ## en para todo lo demás. El usuario puede cambiarlo luego en Opciones.
 func _detect_language() -> String:
-	var loc := OS.get_locale().to_lower()   # p.ej. "es_es", "es_mx", "zh_cn", "zh_tw", "en_us", "fr_fr"
+	var loc := OS.get_locale().to_lower()   # p.ej. "es_es", "es_mx", "en_us", "fr_fr"
 	if loc.begins_with("es"):
 		return "es"   # español cubre todas sus variantes
-	if loc.begins_with("zh"):
-		return "zh"   # chino cubre todas sus variantes
 	return "en"       # cualquier otro idioma -> inglés
-
-
-## Las fuentes Kenney son latinas; para que el chino (u otros glifos) se vea, se
-## añade una fuente del sistema CJK como respaldo a las fuentes y a la de por defecto.
-func _setup_cjk_fallback() -> void:
-	var cjk := SystemFont.new()
-	cjk.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "SimHei",
-		"Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "sans-serif"])
-	for f in [font_title, font_accent, load(FONT_BODY_PATH)]:
-		if f is FontFile:
-			var fl: Array = (f as FontFile).fallbacks
-			fl.append(cjk)
-			(f as FontFile).fallbacks = fl
 
 
 # --- Estilos de texto (iconografia tipografica) ---

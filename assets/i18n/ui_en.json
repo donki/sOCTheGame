@@ -56,5 +56,21 @@
   "Caso 17 · La compra": "Case 17 · The buyout",
   "Caso 18 · El consejo": "Case 18 · The board",
   "Caso 19 · La directora": "Case 19 · The director",
-  "Caso 20 · Nyxos": "Case 20 · Nyxos"
+  "Caso 20 · Nyxos": "Case 20 · Nyxos",
+  "Acerca de": "About",
+  "Apóyame en Ko-fi": "Support me on Ko-fi",
+  "[b]sOC[/b] — novela visual de misterio noir.": "[b]sOC[/b] — noir mystery visual novel.",
+  "Creado por Josep Solà · [i]sOCratic[/i].": "Created by Josep Solà · [i]sOCratic[/i].",
+  "Privacidad": "Privacy",
+  "sOC guarda tu partida únicamente en tu dispositivo. No recopila ni comparte datos personales con terceros.": "sOC stores your save only on your device. It does not collect or share personal data with third parties.",
+  "Licencia": "License",
+  "sOC es software libre distribuido bajo licencia MIT. Copyright © 2026 Socratic.": "sOC is free software distributed under the MIT license. Copyright © 2026 Socratic.",
+  "• Arte: generado por IA (Pollinations · modelos Flux) y reescalado con Real-ESRGAN.": "• Art: AI-generated (Pollinations · Flux models) and upscaled with Real-ESRGAN.",
+  "• Tipografías y efectos de sonido: Kenney (CC0).": "• Fonts and sound effects: Kenney (CC0).",
+  "• Voces: Microsoft Edge TTS (español) / TTS del sistema del dispositivo.": "• Voices: Microsoft Edge TTS (Spanish) / device system TTS.",
+  "• Motor: Godot Engine (MIT).": "• Engine: Godot Engine (MIT).",
+  "Aviso legal": "Legal notice",
+  "Este software se proporciona «tal cual», sin garantías de ningún tipo. Es una obra de ficción: cualquier parecido con personas o hechos reales es pura coincidencia. Uso bajo tu propia responsabilidad.": "This software is provided «as is», without warranties of any kind. It is a work of fiction: any resemblance to real persons or events is pure coincidence. Use at your own risk.",
+  "Apóyame": "Support me",
+  "Contacto": "Contact"
 }

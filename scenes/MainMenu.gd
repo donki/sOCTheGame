@@ -386,7 +386,7 @@ func _build_options_overlay() -> void:
 		fs_row.add_child(fs)
 		vb.add_child(fs_row)
 
-	# Selector de idioma (Español / English / 简体中文)
+	# Selector de idioma (Español / English)
 	var lang_row := HBoxContainer.new()
 	lang_row.add_theme_constant_override("separation", 8)
 	var lang_label := Label.new()
@@ -468,20 +468,20 @@ func _build_about_overlay() -> void:
 	rt.add_theme_color_override("default_color", Global.COL_TEXT)
 	rt.add_theme_font_size_override("normal_font_size", 15)
 	rt.add_theme_font_size_override("bold_font_size", 16)
-	rt.text = ("[b]sOC[/b] — novela visual de misterio noir.\n"
-		+ "Creado por Josep Solà · [i]sOCratic[/i].\n\n"
-		+ "[b]Privacidad[/b]\n"
-		+ "sOC guarda tu partida únicamente en tu dispositivo. No recopila ni comparte datos personales con terceros.\n\n"
-		+ "[b]Licencia[/b]\n"
-		+ "sOC es software libre distribuido bajo licencia MIT. Copyright © 2026 Socratic.\n"
-		+ "• Arte: generado por IA (Pollinations · modelos Flux) y reescalado con Real-ESRGAN.\n"
-		+ "• Tipografías y efectos de sonido: Kenney (CC0).\n"
-		+ "• Voces: Microsoft Edge TTS (español) / TTS del sistema del dispositivo.\n"
-		+ "• Motor: Godot Engine (MIT).\n\n"
-		+ "[b]Aviso legal[/b]\n"
-		+ "Este software se proporciona «tal cual», sin garantías de ningún tipo. Es una obra de ficción: cualquier parecido con personas o hechos reales es pura coincidencia. Uso bajo tu propia responsabilidad.\n\n"
-		+ "[b]Apóyame[/b]  [url=https://ko-fi.com/josepsola]ko-fi.com/josepsola[/url]\n"
-		+ "[b]Contacto[/b]  [url=mailto:jsoladelarosa@gmail.com]jsoladelarosa@gmail.com[/url]")
+	rt.text = (Global.loc("[b]sOC[/b] — novela visual de misterio noir.") + "\n"
+		+ Global.loc("Creado por Josep Solà · [i]sOCratic[/i].") + "\n\n"
+		+ "[b]" + Global.loc("Privacidad") + "[/b]\n"
+		+ Global.loc("sOC guarda tu partida únicamente en tu dispositivo. No recopila ni comparte datos personales con terceros.") + "\n\n"
+		+ "[b]" + Global.loc("Licencia") + "[/b]\n"
+		+ Global.loc("sOC es software libre distribuido bajo licencia MIT. Copyright © 2026 Socratic.") + "\n"
+		+ Global.loc("• Arte: generado por IA (Pollinations · modelos Flux) y reescalado con Real-ESRGAN.") + "\n"
+		+ Global.loc("• Tipografías y efectos de sonido: Kenney (CC0).") + "\n"
+		+ Global.loc("• Voces: Microsoft Edge TTS (español) / TTS del sistema del dispositivo.") + "\n"
+		+ Global.loc("• Motor: Godot Engine (MIT).") + "\n\n"
+		+ "[b]" + Global.loc("Aviso legal") + "[/b]\n"
+		+ Global.loc("Este software se proporciona «tal cual», sin garantías de ningún tipo. Es una obra de ficción: cualquier parecido con personas o hechos reales es pura coincidencia. Uso bajo tu propia responsabilidad.") + "\n\n"
+		+ "[b]" + Global.loc("Apóyame") + "[/b]  [url=https://ko-fi.com/josepsola]ko-fi.com/josepsola[/url]\n"
+		+ "[b]" + Global.loc("Contacto") + "[/b]  [url=mailto:jsoladelarosa@gmail.com]jsoladelarosa@gmail.com[/url]")
 	rt.meta_clicked.connect(func(meta: Variant) -> void: OS.shell_open(str(meta)))
 	vb.add_child(rt)
 
