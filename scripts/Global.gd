@@ -211,8 +211,11 @@ func _ready() -> void:
 	_build_sfx()
 	font_title = load(FONT_TITLE_PATH)
 	font_accent = load(FONT_ACCENT_PATH)
-	settings["language"] = _detect_language()   # defecto: idioma del dispositivo (o inglés)
-	_load_settings()                            # si el usuario ya eligió, prevalece lo guardado
+	# Idioma por defecto: ESPAÑOL. El contenido del juego (todos los diálogos) está en español;
+	# el inglés solo cubre la interfaz, así que autodetectar el idioma del sistema dejaba el splash
+	# en inglés y los diálogos en español (inconsistente). Se respeta lo que el usuario elija en
+	# Opciones (persistido en settings).
+	_load_settings()
 	_load_translations()
 	_apply_settings()
 
