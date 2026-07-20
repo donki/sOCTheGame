@@ -169,7 +169,7 @@ const CH1_LOCATIONS := [
 	{"id": "tomas",     "name": "Tienda de Tomás",   "sub": "El tendero lo ve todo",      "pos": Vector2(0.30, 0.72), "req": "done_rosa"},
 	{"id": "carmen",    "name": "Casa de Doña Carmen","sub": "Guarda los secretos del barrio", "pos": Vector2(0.78, 0.66), "req": "done_tomas"},
 	{"id": "iglesia",   "name": "Iglesia de San José","sub": "El lugar de la desaparición", "pos": Vector2(0.50, 0.20), "req": "clues4"},
-	{"id": "comisaria", "name": "Comisaría",         "sub": "El sargento Núñez",          "pos": Vector2(0.84, 0.44), "req": "cap1_completo"},
+	{"id": "comisaria", "name": "Comisaría",         "sub": "El sargento Núñez",          "pos": Vector2(0.84, 0.44), "req": "tablero_cap1"},
 ]
 const CH1_STREET := ["El grito", "La puerta principal", "El encapuchado", "El campanario"]
 
@@ -182,7 +182,7 @@ const CH2_LOCATIONS := [
 	{"id": "refugio",   "name": "Fundación Amparo",     "sub": "El refugio benéfico",           "pos": Vector2(0.40, 0.30), "req": "done_laura"},
 	{"id": "capilla",   "name": "Capilla privada",     "sub": "Bajo la Fundación",             "pos": Vector2(0.30, 0.66), "req": "done_refugio"},
 	{"id": "muelle",    "name": "Muelle viejo",        "sub": "Donde cargan la furgoneta",     "pos": Vector2(0.80, 0.78), "req": "clues4"},
-	{"id": "cierre2",   "name": "Comisaría",           "sub": "Lo que se cierra desde arriba", "pos": Vector2(0.86, 0.24), "req": "cap2_completo"},
+	{"id": "cierre2",   "name": "Comisaría",           "sub": "Lo que se cierra desde arriba", "pos": Vector2(0.86, 0.24), "req": "tablero_cap2"},
 ]
 const CH2_STREET := ["El hilo común", "El voluntariado", "El benefactor", "La agenda de misas"]
 
@@ -194,7 +194,7 @@ const CH3_LOCATIONS := [
 	{"id": "sotano",  "name": "El sótano",           "sub": "Lo que esconde la mansión",     "pos": Vector2(0.20, 0.62), "req": "done_mansion"},
 	{"id": "padre",   "name": "Iglesia de San José", "sub": "La confesión del párroco",      "pos": Vector2(0.56, 0.30), "req": "done_sotano"},
 	{"id": "torre",   "name": "La torre del reloj",  "sub": "La cuarta noche",               "pos": Vector2(0.62, 0.16), "req": "clues4"},
-	{"id": "cierre3", "name": "Comisaría",           "sub": "El final del hilo",             "pos": Vector2(0.84, 0.70), "req": "cap3_completo"},
+	{"id": "cierre3", "name": "Comisaría",           "sub": "El final del hilo",             "pos": Vector2(0.84, 0.70), "req": "tablero_cap3"},
 ]
 const CH3_STREET := ["Las tres campanas", "Las cautivas", "El chantaje"]
 
@@ -207,7 +207,7 @@ const CH4_LOCATIONS := [
 	{"id": "falso4",  "name": "Un detenido",         "sub": "Se confiesa culpable",          "pos": Vector2(0.66, 0.60), "req": "done_escena4", "red_herring": true},
 	{"id": "redaccion","name": "Redacción del diario","sub": "La periodista Vera Lang",       "pos": Vector2(0.20, 0.36), "req": "done_chivato"},
 	{"id": "almacen", "name": "Almacén del muelle",  "sub": "Donde guardan la mercancía",    "pos": Vector2(0.78, 0.76), "req": "clues4"},
-	{"id": "cierre4", "name": "Comisaría",           "sub": "No es un loco: es un negocio",  "pos": Vector2(0.86, 0.24), "req": "cap4_completo"},
+	{"id": "cierre4", "name": "Comisaría",           "sub": "No es un loco: es un negocio",  "pos": Vector2(0.86, 0.24), "req": "tablero_cap4"},
 ]
 const CH4_STREET := ["El método heredado", "El corredor", "La marca del gremio"]
 
@@ -219,7 +219,7 @@ const CH5_LOCATIONS := [
 	{"id": "salon",     "name": "Salón privado",     "sub": "Madame Ourense",                "pos": Vector2(0.44, 0.30), "req": "done_contacto"},
 	{"id": "trastienda","name": "Trastienda",        "sub": "La lista de clientes",          "pos": Vector2(0.22, 0.56), "req": "done_salon"},
 	{"id": "redada",    "name": "La subasta",        "sub": "La noche de la puja",           "pos": Vector2(0.60, 0.68), "req": "clues4"},
-	{"id": "cierre5",   "name": "Comisaría",         "sub": "Sube un peldaño más",           "pos": Vector2(0.86, 0.24), "req": "cap5_completo"},
+	{"id": "cierre5",   "name": "Comisaría",         "sub": "Sube un peldaño más",           "pos": Vector2(0.86, 0.24), "req": "tablero_cap5"},
 ]
 const CH5_STREET := ["La lista de clientes", "El sello de la casa", "El corredor jefe"]
 
@@ -231,7 +231,7 @@ const CH6_LOCATIONS := [
 	{"id": "contable", "name": "El contable",        "sub": "Sigue el dinero",               "pos": Vector2(0.20, 0.58), "req": "done_despacho"},
 	{"id": "coartada", "name": "Mansión Vaultier",   "sub": "Romper la coartada",            "pos": Vector2(0.30, 0.72), "req": "done_contable"},
 	{"id": "azotea",   "name": "La azotea",          "sub": "La última campana",             "pos": Vector2(0.58, 0.16), "req": "clues4"},
-	{"id": "cierre6",  "name": "Comisaría",          "sub": "El final del hilo",             "pos": Vector2(0.86, 0.70), "req": "cap6_completo"},
+	{"id": "cierre6",  "name": "Comisaría",          "sub": "El final del hilo",             "pos": Vector2(0.86, 0.70), "req": "tablero_cap6"},
 ]
 const CH6_STREET := ["El nombre de arriba", "Los pagos", "La coartada rota"]
 
@@ -245,7 +245,7 @@ const CH7_LOCATIONS := [
 	{"id": "rh7",   "name": "Un camello",        "sub": "El sospechoso fácil",    "pos": Vector2(0.60, 0.68), "req": "done_brief7", "red_herring": true},
 	{"id": "l7b",   "name": "Hospital central",  "sub": "El médico que receta",   "pos": Vector2(0.20, 0.66), "req": "done_l7a"},
 	{"id": "fin7",  "name": "Clínica del Dr. Kessler","sub": "El primer eslabón",  "pos": Vector2(0.52, 0.24), "req": "clues4"},
-	{"id": "cierre7","name": "Comisaría",        "sub": "Somnia",                 "pos": Vector2(0.86, 0.24), "req": "cap7_completo"},
+	{"id": "cierre7","name": "Comisaría",        "sub": "Somnia",                 "pos": Vector2(0.86, 0.24), "req": "tablero_cap7"},
 ]
 const CH7_STREET := ["El fármaco Somnia", "El médico que receta"]
 
@@ -255,7 +255,7 @@ const CH8_LOCATIONS := [
 	{"id": "rh8",   "name": "Un falso dealer",   "sub": "Vende humo",             "pos": Vector2(0.62, 0.70), "req": "done_brief8", "red_herring": true},
 	{"id": "l8b",   "name": "Clínica fantasma",  "sub": "Ensayos a escondidas",   "pos": Vector2(0.44, 0.28), "req": "done_l8a"},
 	{"id": "fin8",  "name": "Sala de ensayos",   "sub": "El paciente cero",       "pos": Vector2(0.30, 0.66), "req": "clues4"},
-	{"id": "cierre8","name": "Comisaría",        "sub": "Ensayos con personas",   "pos": Vector2(0.86, 0.24), "req": "cap8_completo"},
+	{"id": "cierre8","name": "Comisaría",        "sub": "Ensayos con personas",   "pos": Vector2(0.86, 0.24), "req": "tablero_cap8"},
 ]
 const CH8_STREET := ["El paciente cero", "La clínica fantasma"]
 
@@ -265,7 +265,7 @@ const CH9_LOCATIONS := [
 	{"id": "rh9",   "name": "Un voluntario",     "sub": "Firmó por dinero",       "pos": Vector2(0.60, 0.66), "req": "done_brief9", "red_herring": true},
 	{"id": "l9b",   "name": "Centro de negocios","sub": "La empresa detrás",      "pos": Vector2(0.50, 0.30), "req": "done_l9a"},
 	{"id": "fin9",  "name": "Clínica clausurada","sub": "Consentimientos falsos", "pos": Vector2(0.32, 0.68), "req": "clues4"},
-	{"id": "cierre9","name": "Comisaría",        "sub": "Una farmacéutica",       "pos": Vector2(0.86, 0.24), "req": "cap9_completo"},
+	{"id": "cierre9","name": "Comisaría",        "sub": "Una farmacéutica",       "pos": Vector2(0.86, 0.24), "req": "tablero_cap9"},
 ]
 const CH9_STREET := ["Los ensayos ilegales", "El consentimiento falso"]
 
@@ -275,7 +275,7 @@ const CH10_LOCATIONS := [
 	{"id": "rh10",  "name": "Un jefe de planta", "sub": "Grita mucho",            "pos": Vector2(0.64, 0.66), "req": "done_brief10", "red_herring": true},
 	{"id": "l10b",  "name": "Marco, seguridad",  "sub": "Tu excompañero",         "pos": Vector2(0.24, 0.62), "req": "done_l10a"},
 	{"id": "fin10", "name": "Planta de Nyxos",   "sub": "El lote humano",         "pos": Vector2(0.36, 0.30), "req": "clues4"},
-	{"id": "cierre10","name": "Comisaría",       "sub": "Nyxos tiene nombre",     "pos": Vector2(0.86, 0.24), "req": "cap10_completo"},
+	{"id": "cierre10","name": "Comisaría",       "sub": "Nyxos tiene nombre",     "pos": Vector2(0.86, 0.24), "req": "tablero_cap10"},
 ]
 const CH10_STREET := ["La marca Nyxos", "El lote humano"]
 
@@ -285,7 +285,7 @@ const CH11_LOCATIONS := [
 	{"id": "rh11",  "name": "Un concejal rival", "sub": "Demasiado ruidoso",      "pos": Vector2(0.62, 0.66), "req": "done_brief11", "red_herring": true},
 	{"id": "l11b",  "name": "Inspector Rubén",   "sub": "Tu viejo mentor",        "pos": Vector2(0.22, 0.60), "req": "done_l11a"},
 	{"id": "fin11", "name": "Centro de negocios","sub": "El concejal comprado",   "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre11","name": "Comisaría",       "sub": "La red institucional",   "pos": Vector2(0.86, 0.24), "req": "cap11_completo"},
+	{"id": "cierre11","name": "Comisaría",       "sub": "La red institucional",   "pos": Vector2(0.86, 0.24), "req": "tablero_cap11"},
 ]
 const CH11_STREET := ["Los sobornos", "El concejal comprado"]
 
@@ -295,7 +295,7 @@ const CH12_LOCATIONS := [
 	{"id": "rh12",  "name": "Un becario",        "sub": "Filtró por despecho",    "pos": Vector2(0.62, 0.66), "req": "done_brief12", "red_herring": true},
 	{"id": "l12b",  "name": "Oficinas de Nyxos", "sub": "El memorándum",          "pos": Vector2(0.50, 0.28), "req": "done_l12a"},
 	{"id": "fin12", "name": "Oficinas de Nyxos", "sub": "El informante calla",    "pos": Vector2(0.36, 0.66), "req": "clues4"},
-	{"id": "cierre12","name": "Comisaría",       "sub": "Matan por esto",         "pos": Vector2(0.86, 0.24), "req": "cap12_completo"},
+	{"id": "cierre12","name": "Comisaría",       "sub": "Matan por esto",         "pos": Vector2(0.86, 0.24), "req": "tablero_cap12"},
 ]
 const CH12_STREET := ["El informante", "El memorándum interno"]
 
@@ -305,7 +305,7 @@ const CH13_LOCATIONS := [
 	{"id": "rh13",  "name": "Un celador",        "sub": "Se pone nervioso",       "pos": Vector2(0.62, 0.66), "req": "done_brief13", "red_herring": true},
 	{"id": "l13b",  "name": "Hospital · Diego",  "sub": "Tu hermano recae",       "pos": Vector2(0.20, 0.64), "req": "done_l13a"},
 	{"id": "fin13", "name": "Hospital central",  "sub": "El código del proyecto", "pos": Vector2(0.50, 0.26), "req": "clues4"},
-	{"id": "cierre13","name": "Comisaría",       "sub": "Proyecto Somnia",        "pos": Vector2(0.86, 0.24), "req": "cap13_completo"},
+	{"id": "cierre13","name": "Comisaría",       "sub": "Proyecto Somnia",        "pos": Vector2(0.86, 0.24), "req": "tablero_cap13"},
 ]
 const CH13_STREET := ["Los sujetos de prueba", "El código del proyecto"]
 
@@ -315,7 +315,7 @@ const CH14_LOCATIONS := [
 	{"id": "rh14",  "name": "Un pescador",       "sub": "Vio demasiado... o no",  "pos": Vector2(0.62, 0.68), "req": "done_brief14", "red_herring": true},
 	{"id": "l14b",  "name": "Balneario",         "sub": "Los del sur",            "pos": Vector2(0.44, 0.30), "req": "done_l14a"},
 	{"id": "fin14", "name": "Costa · sanatorio", "sub": "Los desaparecidos del sur","pos": Vector2(0.34, 0.66), "req": "clues4"},
-	{"id": "cierre14","name": "Comisaría",       "sub": "No es solo esta ciudad", "pos": Vector2(0.86, 0.24), "req": "cap14_completo"},
+	{"id": "cierre14","name": "Comisaría",       "sub": "No es solo esta ciudad", "pos": Vector2(0.86, 0.24), "req": "tablero_cap14"},
 ]
 const CH14_STREET := ["El balneario", "Los desaparecidos del sur"]
 
@@ -325,7 +325,7 @@ const CH15_LOCATIONS := [
 	{"id": "rh15",  "name": "El ermitaño",       "sub": "Habla con los muertos",  "pos": Vector2(0.62, 0.66), "req": "done_brief15", "red_herring": true},
 	{"id": "l15b",  "name": "Sanatorio",         "sub": "Una superviviente",      "pos": Vector2(0.44, 0.28), "req": "done_l15a"},
 	{"id": "fin15", "name": "Montaña · sanatorio","sub": "La que escapó",         "pos": Vector2(0.34, 0.64), "req": "clues4"},
-	{"id": "cierre15","name": "Comisaría",       "sub": "Un testigo vivo",        "pos": Vector2(0.86, 0.24), "req": "cap15_completo"},
+	{"id": "cierre15","name": "Comisaría",       "sub": "Un testigo vivo",        "pos": Vector2(0.86, 0.24), "req": "tablero_cap15"},
 ]
 const CH15_STREET := ["La superviviente", "El sanatorio de montaña"]
 
@@ -335,7 +335,7 @@ const CH16_LOCATIONS := [
 	{"id": "rh16",  "name": "Policía local",     "sub": "¿Aliado o cebo?",        "pos": Vector2(0.62, 0.66), "req": "done_brief16", "red_herring": true},
 	{"id": "l16b",  "name": "Clara · en ruta",   "sub": "Tu ex vuelve a ayudar",  "pos": Vector2(0.22, 0.60), "req": "done_l16a"},
 	{"id": "fin16", "name": "Sede regional",     "sub": "El patrón nacional",     "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre16","name": "Comisaría",       "sub": "Es un país entero",      "pos": Vector2(0.86, 0.24), "req": "cap16_completo"},
+	{"id": "cierre16","name": "Comisaría",       "sub": "Es un país entero",      "pos": Vector2(0.86, 0.24), "req": "tablero_cap16"},
 ]
 const CH16_STREET := ["La franquicia", "El patrón nacional"]
 
@@ -345,7 +345,7 @@ const CH17_LOCATIONS := [
 	{"id": "rh17",  "name": "Un abogado",        "sub": "Ofrece un pacto",        "pos": Vector2(0.62, 0.66), "req": "done_brief17", "red_herring": true},
 	{"id": "l17b",  "name": "Marco, otra vez",   "sub": "Entre dos lealtades",    "pos": Vector2(0.24, 0.60), "req": "done_l17a"},
 	{"id": "fin17", "name": "Oficinas de Nyxos", "sub": "El chantaje a Nora",     "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre17","name": "Comisaría",       "sub": "No se venden todos",     "pos": Vector2(0.86, 0.24), "req": "cap17_completo"},
+	{"id": "cierre17","name": "Comisaría",       "sub": "No se venden todos",     "pos": Vector2(0.86, 0.24), "req": "tablero_cap17"},
 ]
 const CH17_STREET := ["La oferta", "El chantaje a Nora"]
 
@@ -355,7 +355,7 @@ const CH18_LOCATIONS := [
 	{"id": "rh18",  "name": "Un consejero",      "sub": "Dimite de repente",      "pos": Vector2(0.62, 0.66), "req": "done_brief18", "red_herring": true},
 	{"id": "l18b",  "name": "El contable vuelve","sub": "Sigue la votación",      "pos": Vector2(0.24, 0.60), "req": "done_l18a"},
 	{"id": "fin18", "name": "Sala del consejo",  "sub": "La votación secreta",    "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre18","name": "Comisaría",       "sub": "Deciden juntos",         "pos": Vector2(0.86, 0.24), "req": "cap18_completo"},
+	{"id": "cierre18","name": "Comisaría",       "sub": "Deciden juntos",         "pos": Vector2(0.86, 0.24), "req": "tablero_cap18"},
 ]
 const CH18_STREET := ["El acta secreta", "La votación del consejo"]
 
@@ -365,7 +365,7 @@ const CH19_LOCATIONS := [
 	{"id": "rh19",  "name": "El relaciones públicas","sub": "Todo sonrisas",      "pos": Vector2(0.62, 0.66), "req": "done_brief19", "red_herring": true},
 	{"id": "l19b",  "name": "Diego, a salvo",    "sub": "Rescatas a tu hermano",  "pos": Vector2(0.24, 0.60), "req": "done_l19a"},
 	{"id": "fin19", "name": "Oficina de Nyxos",  "sub": "El proyecto Somnia",     "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre19","name": "Comisaría",       "sub": "Adler no está sola",     "pos": Vector2(0.86, 0.24), "req": "cap19_completo"},
+	{"id": "cierre19","name": "Comisaría",       "sub": "Adler no está sola",     "pos": Vector2(0.86, 0.24), "req": "tablero_cap19"},
 ]
 const CH19_STREET := ["La directora Adler", "El proyecto Somnia"]
 
@@ -375,33 +375,195 @@ const CH20_LOCATIONS := [
 	{"id": "rh20",  "name": "Un chivo expiatorio","sub": "Nyxos ofrece un culpable","pos": Vector2(0.62, 0.66), "req": "done_brief20", "red_herring": true},
 	{"id": "l20b",  "name": "Todos ayudan",      "sub": "Sonia, Clara, Vera, Rubén","pos": Vector2(0.24, 0.60), "req": "done_l20a"},
 	{"id": "fin20", "name": "Azotea de Nyxos",   "sub": "La prueba definitiva",   "pos": Vector2(0.50, 0.30), "req": "clues4"},
-	{"id": "cierre20","name": "Comisaría",       "sub": "Cae Nyxos",              "pos": Vector2(0.86, 0.24), "req": "cap20_completo"},
+	{"id": "cierre20","name": "Comisaría",       "sub": "Cae Nyxos",              "pos": Vector2(0.86, 0.24), "req": "tablero_cap20"},
 ]
 const CH20_STREET := ["La cúpula entera", "La prueba definitiva"]
 
 # Mapa de capítulos. end_flag = bandera cuya activación pasa al capítulo siguiente.
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+#  TRIPLETAS DEL TABLERO (mecánica de cierre de capítulo — ver EvidenceBoard)
+# ---------------------------------------------------------------------------
+## Cada enlace es una deducción a 3 bandas: una PISTA (título EXACTO tal cual lo
+## escribe add_clue), la PERSONA que implica (clave de CHARS) y la ZONA del mapa
+## donde apunta (id de CHx_LOCATIONS). El jugador cierra el TRIÁNGULO tendiendo los
+## tres hilos (pista-persona, persona-zona, pista-zona) y `text` es la deducción que
+## se canta al resolverla.
+## OJO: las asignaciones who/zone se generaron automáticamente y están pendientes de
+## repaso narrativo (algunas son aproximadas; p.ej. CH14 usa al propio detective).
+const CH1_LINKS := [
+	{"clue": "El campanario", "who": "encapuchado", "zone": "iglesia",
+	 "text": "Por la puerta no salió nadie y el campanario estaba abierto: la sacaron por arriba."},
+	{"clue": "El pañuelo", "who": "marta", "zone": "iglesia",
+	 "text": "El grito fue junto al altar; su pañuelo, al pie de la escalera. Ese es el camino que hizo."},
+	{"clue": "La cita sin nombre", "who": "encapuchado", "zone": "casa_marta",
+	 "text": "La cita de las 23:00 no llevaba nombre porque era él: con quien discutió la víspera."},
+	{"clue": "La taza a medias", "who": "rosa", "zone": "plaza",
+	 "text": "Dejó el café sin terminar y alguien cruzó la plaza con prisa esa noche: era ella."},
+]
+const CH2_LINKS := [
+	{"clue": "El voluntariado", "who": "comisario", "zone": "refugio",
+	 "text": "Las tres pasaron por la Fundación, y allí un 'benefactor' se fijó en Marta: Amparo es el cazadero."},
+	{"clue": "El registro tachado", "who": "comisario", "zone": "refugio",
+	 "text": "El mecenas elige entre las acogidas y sus nombres desaparecen del libro: de esos 'retiros' no vuelve nadie."},
+	{"clue": "La agenda de misas", "who": "comisario", "zone": "brief",
+	 "text": "Un memo policial guardado con los horarios de misa y un chófer con placa: hay un policía dentro."},
+]
+const CH3_LINKS := [
+	{"clue": "El cuadro torcido", "who": "comisario", "zone": "mansion",
+	 "text": "Tres campanas con su placa y un hueco sin polvo en la pared: a la colección le falta una pieza."},
+	{"clue": "Aranazos en la reja", "who": "marta", "zone": "sotano",
+	 "text": "Arañazos por dentro de los barrotes y dos mujeres vivas ahí abajo: el sótano es la jaula."},
+	{"clue": "El chantaje", "who": "padre", "zone": "torre",
+	 "text": "El párroco entregaba porque lo tenían cogido, y el que coleccionaba esperaba en la torre."},
+]
+const CH4_LINKS := [
+	{"clue": "El lacre en el suelo", "who": "corredor", "zone": "escena4",
+	 "text": "El método es de Bru, pero el lacre es de otro: alguien heredó el oficio y lo firma."},
+	{"clue": "El libro de envíos", "who": "corredor", "zone": "almacen",
+	 "text": "Un sello de gremio y un registro de envíos con fechas: esto no es un imitador, es una empresa."},
+]
+const CH5_LINKS := [
+	{"clue": "La lista de clientes", "who": "madame", "zone": "trastienda",
+	 "text": "Una lista cifrada y un cuaderno de apodos: los que pujan tienen nombre."},
+	{"clue": "El sello de la casa", "who": "corredor", "zone": "redada",
+	 "text": "Sin sello no se entra, y quien reparte los sellos es quien manda la puja."},
+]
+const CH6_LINKS := [
+	{"clue": "La escalera a la azotea", "who": "magnate", "zone": "azotea",
+	 "text": "Dice estar en sus galas, pero el polvo de la escalera privada está pisado justo esas noches."},
+	{"clue": "Los pagos", "who": "magnate", "zone": "contable",
+	 "text": "El que dirige el Cónclave y la cuenta que paga al Corredor son el mismo hombre."},
+]
+const CH7_LINKS := [
+	{"clue": "El informe corregido", "who": "sonia", "zone": "l7a",
+	 "text": "El fármaco salió en la sangre y alguien reescribió la autopsia: no querían que constara."},
+	{"clue": "El médico que receta", "who": "kessler", "zone": "fin7",
+	 "text": "El que firmaba las recetas cobraba por elegir a quién: Kessler no trataba, seleccionaba."},
+]
+const CH8_LINKS := [
+	{"clue": "Los blisters vacios", "who": "diego", "zone": "l8a",
+	 "text": "Le dieron el Somnia 'gratis' y esconde más blísters de los que un tratamiento explica: no lo tratan, lo dosifican."},
+	{"clue": "La clínica fantasma", "who": "voluntario", "zone": "l8b",
+	 "text": "Una clínica que no consta en ningún registro y decenas de voluntarios que sí: el ensayo se hizo donde nadie mira."},
+]
+const CH9_LINKS := [
+	{"clue": "El expediente sellado", "who": "clara", "zone": "fin9",
+	 "text": "Un notario que no existe y una firma que no es la del paciente: el consentimiento es papel mojado."},
+	{"clue": "N.P. = Nyxos Pharma", "who": "adler", "zone": "l9b",
+	 "text": "Si el ensayo ilegal se rastrea hasta el promotor, esas siglas ya tienen dueño."},
+]
+const CH10_LINKS := [
+	{"clue": "El albaran interno", "who": "adler", "zone": "l10a",
+	 "text": "Fabrican en serie y el albarán lo firma: para Nyxos esto es un producto con logo."},
+	{"clue": "Cobayas con número", "who": "marco", "zone": "fin10",
+	 "text": "Los lotes llevan números de persona y abajo hay celdas: el lote son las personas."},
+]
+const CH11_LINKS := [
+	{"clue": "Los sobornos", "who": "ruben", "zone": "l11a",
+	 "text": "La fundación paga las campañas y el permiso salió en tiempo récord: el trámite estaba comprado."},
+	{"clue": "El coche sin matricula", "who": "sospechoso", "zone": "fin11",
+	 "text": "Agradecen con dinero y con silencio; el coche sin matrícula y con el capó tibio es cómo se entrega."},
+]
+const CH12_LINKS := [
+	{"clue": "El post-it garabateado", "who": "periodista", "zone": "l12a",
+	 "text": "Una hora y un muelle escritos a mano bajo el monitor: ahí era la cita a ciegas."},
+	{"clue": "El memorándum interno", "who": "chivato", "zone": "l12b",
+	 "text": "'Depurar sujetos no viables' lo firma la dirección, y el informante aparece muerto: la orden se cumple."},
+]
+const CH13_LINKS := [
+	{"clue": "La ficha sin nombre", "who": "sonia", "zone": "l13a",
+	 "text": "Los desaparecidos son sujetos de un estudio y sus fichas no llevan nombre: los borran antes de usarlos."},
+	{"clue": "Diego en la lista", "who": "diego", "zone": "l13b",
+	 "text": "Reclutar a tu hermano no es casualidad: lleva el sello del consejo. Es presión, y viene de arriba."},
+]
+const CH14_LINKS := [
+	{"clue": "Los desaparecidos del sur", "who": "sospechoso", "zone": "l14b",
+	 "text": "Un balneario que es un centro de ensayos y una lista de vecinos que nunca volvieron del 'tratamiento'."},
+	{"clue": "La barca de mas", "who": "sospechoso", "zone": "l14a",
+	 "text": "Correas y lonas nuevas en una barca que no pesca: así se mueve la gente. La red es nacional."},
+]
+const CH15_LINKS := [
+	{"clue": "El sanatorio de montaña", "who": "testigo", "zone": "l15a",
+	 "text": "Ingresan sanos y la chimenea no para en toda la noche: de ahí nadie sale con el alta."},
+	{"clue": "La superviviente", "who": "testigo", "zone": "l15b",
+	 "text": "La que escapó acepta hablar: por primera vez el proyecto tiene un testigo con cara."},
+]
+const CH16_LINKS := [
+	{"clue": "El mismo cartel", "who": "clara", "zone": "l16a",
+	 "text": "Los mismos protocolos y el mismo logotipo a cientos de kilómetros: no es una imitación, es una cadena."},
+	{"clue": "El patrón nacional", "who": "anonimo", "zone": "fin16",
+	 "text": "Todas las filiales cuelgan de una única sede: el proyecto tiene una sola cabeza."},
+]
+const CH17_LINKS := [
+	{"clue": "La tarjeta olvidada", "who": "clara", "zone": "l17a",
+	 "text": "Primero la tarjeta del bufete que arregla problemas y después la oferta: el aviso venía con precio."},
+	{"clue": "El chantaje a Nora", "who": "marco", "zone": "fin17",
+	 "text": "Cuando el dinero falla, amenazan a Diego. Y es justo entonces cuando Marco se planta."},
+]
+const CH18_LINKS := [
+	{"clue": "El acta incompleta", "who": "contable", "zone": "l18a",
+	 "text": "El punto arrancado del orden del día es justo el que aprueba la 'gestión de sujetos'."},
+	{"clue": "La votación del consejo", "who": "adler", "zone": "fin18",
+	 "text": "Por unanimidad: no hay una mano suelta que se saliera del guion. Están los doce."},
+]
+const CH19_LINKS := [
+	{"clue": "La foto recortada", "who": "kessler", "zone": "l19a",
+	 "text": "Una firma por encima de Adler y una cara recortada de la foto del consejo: alguien no quiere estar."},
+	{"clue": "La directora Adler", "who": "adler", "zone": "fin19",
+	 "text": "Habla del 'progreso necesario' como quien repite un guion. No lo escribió ella."},
+]
+const CH20_LINKS := [
+	{"clue": "La grabadora oculta", "who": "testigo", "zone": "l20a",
+	 "text": "Los doce en una sala y una grabadora corriendo bajo la mesa: que lo digan ellos mismos."},
+	{"clue": "La prueba definitiva", "who": "periodista", "zone": "fin20",
+	 "text": "Forense, legal, prensa, testigo y una voz dentro: por separado no son nada; juntas, son Nyxos entero."},
+]
+
+
 const CHAPTERS := {
+	# El tutorial NO lleva tablero: sus "pistas" son instrucciones, no pruebas que atar.
 	0: {"title": "Tutorial · Cómo se juega",            "locations": CH0_LOCATIONS, "street": CH0_STREET, "complete_flag": "cap0_completo", "end_flag": "done_cierre0"},
-	1: {"title": "Capítulo 1 · Desaparición en la iglesia", "locations": CH1_LOCATIONS, "street": CH1_STREET, "complete_flag": "cap1_completo", "end_flag": "done_comisaria"},
-	2: {"title": "Capítulo 2 · Las campanas que faltan",    "locations": CH2_LOCATIONS, "street": CH2_STREET, "complete_flag": "cap2_completo", "end_flag": "done_cierre2"},
-	3: {"title": "Capítulo 3 · El coleccionista",           "locations": CH3_LOCATIONS, "street": CH3_STREET, "complete_flag": "cap3_completo", "end_flag": "done_cierre3"},
-	4: {"title": "Capítulo 4 · El heredero",                "locations": CH4_LOCATIONS, "street": CH4_STREET, "complete_flag": "cap4_completo", "end_flag": "done_cierre4"},
-	5: {"title": "Capítulo 5 · La subasta",                 "locations": CH5_LOCATIONS, "street": CH5_STREET, "complete_flag": "cap5_completo", "end_flag": "done_cierre5"},
-	6: {"title": "Capítulo 6 · La cúspide",                 "locations": CH6_LOCATIONS, "street": CH6_STREET, "complete_flag": "cap6_completo", "end_flag": "done_cierre6"},
-	7: {"title": "Capítulo 7 · La receta",                  "locations": CH7_LOCATIONS, "street": CH7_STREET, "complete_flag": "cap7_completo", "end_flag": "done_cierre7"},
-	8: {"title": "Capítulo 8 · El hermano",                 "locations": CH8_LOCATIONS, "street": CH8_STREET, "complete_flag": "cap8_completo", "end_flag": "done_cierre8"},
-	9: {"title": "Capítulo 9 · La clínica fantasma",        "locations": CH9_LOCATIONS, "street": CH9_STREET, "complete_flag": "cap9_completo", "end_flag": "done_cierre9"},
-	10: {"title": "Capítulo 10 · El laboratorio",           "locations": CH10_LOCATIONS, "street": CH10_STREET, "complete_flag": "cap10_completo", "end_flag": "done_cierre10", "map": "res://assets/backgrounds/mapa_centro.png"},
-	11: {"title": "Capítulo 11 · El barrio alto",           "locations": CH11_LOCATIONS, "street": CH11_STREET, "complete_flag": "cap11_completo", "end_flag": "done_cierre11", "map": "res://assets/backgrounds/mapa_centro.png"},
-	12: {"title": "Capítulo 12 · La filtración",            "locations": CH12_LOCATIONS, "street": CH12_STREET, "complete_flag": "cap12_completo", "end_flag": "done_cierre12"},
-	13: {"title": "Capítulo 13 · El expediente",            "locations": CH13_LOCATIONS, "street": CH13_STREET, "complete_flag": "cap13_completo", "end_flag": "done_cierre13"},
-	14: {"title": "Capítulo 14 · El pueblo de la costa",    "locations": CH14_LOCATIONS, "street": CH14_STREET, "complete_flag": "cap14_completo", "end_flag": "done_cierre14", "map": "res://assets/backgrounds/mapa_costa.png"},
-	15: {"title": "Capítulo 15 · El pueblo de montaña",     "locations": CH15_LOCATIONS, "street": CH15_STREET, "complete_flag": "cap15_completo", "end_flag": "done_cierre15", "map": "res://assets/backgrounds/mapa_montana.png"},
-	16: {"title": "Capítulo 16 · La otra ciudad",           "locations": CH16_LOCATIONS, "street": CH16_STREET, "complete_flag": "cap16_completo", "end_flag": "done_cierre16", "map": "res://assets/backgrounds/mapa_ciudad2.png"},
-	17: {"title": "Capítulo 17 · La compra",                "locations": CH17_LOCATIONS, "street": CH17_STREET, "complete_flag": "cap17_completo", "end_flag": "done_cierre17"},
-	18: {"title": "Capítulo 18 · El consejo",               "locations": CH18_LOCATIONS, "street": CH18_STREET, "complete_flag": "cap18_completo", "end_flag": "done_cierre18"},
-	19: {"title": "Capítulo 19 · La directora",             "locations": CH19_LOCATIONS, "street": CH19_STREET, "complete_flag": "cap19_completo", "end_flag": "done_cierre19"},
-	20: {"title": "Capítulo 20 · Nyxos",                    "locations": CH20_LOCATIONS, "street": CH20_STREET, "complete_flag": "cap20_completo", "end_flag": "done_cierre20"},
+	1: {"title": "Capítulo 1 · Desaparición en la iglesia", "locations": CH1_LOCATIONS, "street": CH1_STREET, "complete_flag": "cap1_completo", "end_flag": "done_comisaria",
+		"links": CH1_LINKS, "links_flag": "tablero_cap1", "epilogue": "comisaria"},
+	2: {"title": "Capítulo 2 · Las campanas que faltan",    "locations": CH2_LOCATIONS, "street": CH2_STREET, "complete_flag": "cap2_completo", "end_flag": "done_cierre2",
+		"links": CH2_LINKS, "links_flag": "tablero_cap2", "epilogue": "cierre2"},
+	3: {"title": "Capítulo 3 · El coleccionista",           "locations": CH3_LOCATIONS, "street": CH3_STREET, "complete_flag": "cap3_completo", "end_flag": "done_cierre3",
+		"links": CH3_LINKS, "links_flag": "tablero_cap3", "epilogue": "cierre3"},
+	4: {"title": "Capítulo 4 · El heredero",                "locations": CH4_LOCATIONS, "street": CH4_STREET, "complete_flag": "cap4_completo", "end_flag": "done_cierre4",
+		"links": CH4_LINKS, "links_flag": "tablero_cap4", "epilogue": "cierre4"},
+	5: {"title": "Capítulo 5 · La subasta",                 "locations": CH5_LOCATIONS, "street": CH5_STREET, "complete_flag": "cap5_completo", "end_flag": "done_cierre5",
+		"links": CH5_LINKS, "links_flag": "tablero_cap5", "epilogue": "cierre5"},
+	6: {"title": "Capítulo 6 · La cúspide",                 "locations": CH6_LOCATIONS, "street": CH6_STREET, "complete_flag": "cap6_completo", "end_flag": "done_cierre6",
+		"links": CH6_LINKS, "links_flag": "tablero_cap6", "epilogue": "cierre6"},
+	7: {"title": "Capítulo 7 · La receta",                  "locations": CH7_LOCATIONS, "street": CH7_STREET, "complete_flag": "cap7_completo", "end_flag": "done_cierre7",
+		"links": CH7_LINKS, "links_flag": "tablero_cap7", "epilogue": "cierre7"},
+	8: {"title": "Capítulo 8 · El hermano",                 "locations": CH8_LOCATIONS, "street": CH8_STREET, "complete_flag": "cap8_completo", "end_flag": "done_cierre8",
+		"links": CH8_LINKS, "links_flag": "tablero_cap8", "epilogue": "cierre8"},
+	9: {"title": "Capítulo 9 · La clínica fantasma",        "locations": CH9_LOCATIONS, "street": CH9_STREET, "complete_flag": "cap9_completo", "end_flag": "done_cierre9",
+		"links": CH9_LINKS, "links_flag": "tablero_cap9", "epilogue": "cierre9"},
+	10: {"title": "Capítulo 10 · El laboratorio",           "locations": CH10_LOCATIONS, "street": CH10_STREET, "complete_flag": "cap10_completo", "end_flag": "done_cierre10", "map": "res://assets/backgrounds/mapa_centro.png",
+		"links": CH10_LINKS, "links_flag": "tablero_cap10", "epilogue": "cierre10"},
+	11: {"title": "Capítulo 11 · El barrio alto",           "locations": CH11_LOCATIONS, "street": CH11_STREET, "complete_flag": "cap11_completo", "end_flag": "done_cierre11", "map": "res://assets/backgrounds/mapa_centro.png",
+		"links": CH11_LINKS, "links_flag": "tablero_cap11", "epilogue": "cierre11"},
+	12: {"title": "Capítulo 12 · La filtración",            "locations": CH12_LOCATIONS, "street": CH12_STREET, "complete_flag": "cap12_completo", "end_flag": "done_cierre12",
+		"links": CH12_LINKS, "links_flag": "tablero_cap12", "epilogue": "cierre12"},
+	13: {"title": "Capítulo 13 · El expediente",            "locations": CH13_LOCATIONS, "street": CH13_STREET, "complete_flag": "cap13_completo", "end_flag": "done_cierre13",
+		"links": CH13_LINKS, "links_flag": "tablero_cap13", "epilogue": "cierre13"},
+	14: {"title": "Capítulo 14 · El pueblo de la costa",    "locations": CH14_LOCATIONS, "street": CH14_STREET, "complete_flag": "cap14_completo", "end_flag": "done_cierre14", "map": "res://assets/backgrounds/mapa_costa.png",
+		"links": CH14_LINKS, "links_flag": "tablero_cap14", "epilogue": "cierre14"},
+	15: {"title": "Capítulo 15 · El pueblo de montaña",     "locations": CH15_LOCATIONS, "street": CH15_STREET, "complete_flag": "cap15_completo", "end_flag": "done_cierre15", "map": "res://assets/backgrounds/mapa_montana.png",
+		"links": CH15_LINKS, "links_flag": "tablero_cap15", "epilogue": "cierre15"},
+	16: {"title": "Capítulo 16 · La otra ciudad",           "locations": CH16_LOCATIONS, "street": CH16_STREET, "complete_flag": "cap16_completo", "end_flag": "done_cierre16", "map": "res://assets/backgrounds/mapa_ciudad2.png",
+		"links": CH16_LINKS, "links_flag": "tablero_cap16", "epilogue": "cierre16"},
+	17: {"title": "Capítulo 17 · La compra",                "locations": CH17_LOCATIONS, "street": CH17_STREET, "complete_flag": "cap17_completo", "end_flag": "done_cierre17",
+		"links": CH17_LINKS, "links_flag": "tablero_cap17", "epilogue": "cierre17"},
+	18: {"title": "Capítulo 18 · El consejo",               "locations": CH18_LOCATIONS, "street": CH18_STREET, "complete_flag": "cap18_completo", "end_flag": "done_cierre18",
+		"links": CH18_LINKS, "links_flag": "tablero_cap18", "epilogue": "cierre18"},
+	19: {"title": "Capítulo 19 · La directora",             "locations": CH19_LOCATIONS, "street": CH19_STREET, "complete_flag": "cap19_completo", "end_flag": "done_cierre19",
+		"links": CH19_LINKS, "links_flag": "tablero_cap19", "epilogue": "cierre19"},
+	20: {"title": "Capítulo 20 · Nyxos",                    "locations": CH20_LOCATIONS, "street": CH20_STREET, "complete_flag": "cap20_completo", "end_flag": "done_cierre20",
+		"links": CH20_LINKS, "links_flag": "tablero_cap20", "epilogue": "cierre20"},
 }
 
 # --- Accesos al capítulo actual (Global.chapter) ---
@@ -428,6 +590,27 @@ static func end_flag() -> String:
 
 static func is_last_chapter() -> bool:
 	return not CHAPTERS.has(Global.chapter + 1)
+
+
+# --- Tablero jugable (parejas de pistas) -------------------------------------
+## Capítulos SIN "links" -> el tablero sigue siendo el escaparate de siempre y el
+## caso se cierra por su diálogo de cierre. De momento solo el 1 lo lleva.
+static func links() -> Array:
+	return chapter_data().get("links", [])
+
+## Bandera que marca el tablero de este capítulo como resuelto. Es el requisito
+## de la localización de cierre, así que no se puede saltar el tablero yendo allí.
+static func links_flag() -> String:
+	return String(chapter_data().get("links_flag", ""))
+
+## Localización que se abre como EPÍLOGO al resolver el tablero; su diálogo es
+## quien activa end_flag y, con él, el salto de capítulo.
+static func epilogue_id() -> String:
+	return String(chapter_data().get("epilogue", ""))
+
+## Bandera de una pareja ya unida: el progreso del tablero sobrevive a cerrarlo.
+static func link_flag(i: int) -> String:
+	return "link_%d_%d" % [Global.chapter, i]
 
 
 # ---------------------------------------------------------------------------
@@ -461,6 +644,11 @@ static func location_state(id: String) -> String:
 			if not Global.has_flag(req):
 				return "locked"
 	if Global.has_flag("done_" + id):
+		return "done"
+	# Las localizaciones clímax marcan su fin con la bandera del capítulo (p.ej. la
+	# iglesia -> cap1_completo) en vez de done_<id>: cuéntalas como hechas igualmente.
+	var dlg_flag := String(get_dialogue(id).get("flag", ""))
+	if dlg_flag != "" and Global.has_flag(dlg_flag):
 		return "done"
 	return "available"
 

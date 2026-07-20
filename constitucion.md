@@ -208,6 +208,28 @@ sOCTheGame/
 
 ---
 
+## 6-bis. Versión HTML de demostración (tutorial + Cap. 1) — REQUISITO
+
+sOC **debe** mantener una **versión HTML** jugable del **tutorial (Cap. 0)** y del
+**primer capítulo (Cap. 1)**, como demo web para enseñar el juego sin instalar nada.
+
+- **Alcance**: solo Cap. 0 y Cap. 1. No es un port del motor entero: es una demo de la
+  novela visual (diálogos, retratos, elecciones, pistas y el cierre del caso 1).
+- **Autocontenida**: un único `.html` sin dependencias externas (CSS y JS embebidos,
+  imágenes como `data:` URI o junto al html). Debe abrirse con doble clic y funcionar
+  offline y en móvil (responsive, tema claro/oscuro).
+- **Fuente única de verdad**: el contenido narrativo sale de `scripts/Story.gd`
+  (`CHARS`, `BGS`, `CHAPTERS[0]`, `CHAPTERS[1]`, sus localizaciones, diálogos, `beats`,
+  elecciones y pistas). La demo HTML **no** duplica la historia a mano: se genera o se
+  sincroniza desde `Story.gd`, y cuando el guion del tutorial o del Cap. 1 cambie, la
+  versión HTML se regenera para no divergir.
+- **Fidelidad de marca**: respeta el lenguaje visual noir/cyberpunk (misma paleta,
+  tipografía de título, retratos y máquina de escribir) para que la demo se reconozca
+  como sOC.
+- **Ubicación**: `web/` (p. ej. `web/demo.html` + `tools/gen_web_demo.*` si se genera).
+
+---
+
 ## 7. Estado actual (Fase 2)
 
 - ✅ Fundación completa (autoload, splash, menú) — ver Fase 1.
@@ -1518,6 +1540,290 @@ cerrar; los **blips quedan como fallback** solo si NO hay TTS (`_emit_blips` ret
 El narrador no se lee. `voices_enabled` sigue disponible para silenciar. Verificado en la máquina de dev:
 6 voces (3 español: Pablo ♂, Helena ♀, Laura ♀); Núñez→Pablo grave, Rosa/Nora→Helena, etc. En equipos sin
 TTS o sin voz española, cae con elegancia (otra voz o blips).
+
+### 2026-07-15 — Voces PREGRABADAS (edge-tts) + pantalla "Acerca de" (About)
+
+**Voces pregrabadas, una por personaje (funciona igual en Windows y Android).** El TTS en runtime
+dependía de las voces del dispositivo (y en Android varía). Se añade un pipeline que **pre-renderiza** las
+líneas con **edge-tts** (voces neuronales gratuitas de Microsoft, español ES/MX/AR/CL/CO/PE/US/VE) y se
+**empaqueta el audio** (no depende del dispositivo):
+- `tools/ExtractVoices.gd/.tscn` recorre todos los capítulos y vuelca `(who,text)` a `voice_lines.json`
+  (narrador excluido). **1092 líneas únicas**.
+- `tools/gen_voices.py`: asigna una **voz por personaje** (mapa curado para principales + reparto por
+  género con variación de rate/pitch para el resto) y renderiza cada línea a `assets/voices/<key>.mp3`,
+  con `key = sha1("who|text")[:16]` (concurrencia, reintentos, skip si existe). Render completo: **1092/1092
+  OK, ~68 MB**.
+- Runtime: `Global.voice_line(who, src_es, disp)` reproduce el MP3 pregrabado (solo en español) por un
+  `AudioStreamPlayer` dedicado; si no hay, cae a **TTS del sistema** (texto mostrado, para en/zh); si no,
+  a los **blips**. `DialogueScene` llama a `voice_line` con el texto ORIGINAL (clave del audio) + el
+  mostrado; los blips solo suenan si `_line_voiced` es false. `stop_speaking` corta MP3 y TTS. Verificado:
+  20/20 líneas de muestra resuelven su MP3; `voiced=true`.
+- Nota: el audio pregrabado es **español**; en otros idiomas se usa TTS del texto traducido. Regenerar si
+  cambian los textos (re-extraer + `gen_voices.py`, que salta lo ya hecho).
+
+**Pantalla "Acerca de" (About) en Opciones (`MainMenu`).** Nuevo overlay `_about` con: nombre **sOCratic**,
+créditos y **licencias** (código MIT · arte IA Pollinations/Flux + Real-ESRGAN · fuentes y SFX Kenney CC0 ·
+voces Edge TTS/TTS del sistema · motor Godot MIT), enlace **Ko-fi** (https://ko-fi.com/josepsola) y
+**contacto** (jsoladelarosa@gmail.com), con enlaces clicables (`meta_clicked` → `OS.shell_open`) y botón de
+Ko-fi. Se abre desde el botón "Acerca de" del menú de Opciones.
+
+**Búsqueda:** el punto de las zonas ahora empieza al **10% de opacidad** (90% transp.) en vez de invisible;
+sigue subiendo a 15% (1 min) y 20% (2 min).
+
+**Fotos de objeto para el tablero (`tools/gen_objects.py`).** Nuevo script reutilizable que genera las
+"polaroids" de PISTA que muestra `EvidenceBoard` en `assets/objects/<slug>.png` (slug = sha1 del título, ya
+en `clues.json`). Filtra de las 201 pistas solo las que representan una **prueba física tangible** (taza,
+sello/serpiente, lacre, cuaderno, agenda, sobre, blísters, pañuelo, foto recortada, albarán, post-it,
+tarjeta, grabadora, libro de registro, expediente…), 49 objetos curados en un dict `slug→objeto`; NO genera
+para personas, conceptos ni deducciones. Estilo "foto de evidencia policial" noir-cyberpunk anime
+(reutiliza `poll_fetch`/`ANIME_SCENE_LEAD` de `gen_assets.py`), **768×768 sin Real-ESRGAN** (se ven
+pequeñas), descarga **concurrente 8 hilos** con reintentos y salto de fallos. Reimportar en Godot con
+`--headless --import` tras generar.
+
+### 2026-07-15 (cont.) — Tablero de pruebas rediseñado (orgánico + fotos de escena y objeto)
+
+El tablero (`EvidenceBoard`) era una **rejilla lineal** con hilo en zig-zag por filas y solo retratos +
+notas. Rework para que parezca un corcho de detective real:
+- **Disposición orgánica**: se **mezclan los tipos** (`items.shuffle()`), con desplazamiento amplio dentro
+  de cada celda (±22/±18) y rotación marcada (±7°). El **hilo rojo teje** por vecino más próximo
+  (`_thread_nearest`), no por filas.
+- **Fotos de ESCENA**: cada localización visitada del capítulo (`done_<id>`) se clava como **polaroid** con
+  su fondo real (`Story.BGS[bg]`) y su nombre (`_make_scene_photo`).
+- **Fotos de OBJETO**: si existe `res://assets/objects/<sha1(title)[:12]>.png`, la pista se muestra como
+  **polaroid del objeto** (`_make_object_photo`) en vez de nota de papel; las falsas van tachadas. La clave
+  la comparte el generador `tools/gen_objects.py`. Imágenes generadas con Pollinations (ver entrada previa);
+  pistas extraídas con `tools/ExtractClues` (201 pistas → `clues.json`).
+- El auto-fit + zoom (+/−, rueda, pinch) se mantienen; con más elementos, se encoge y se puede ampliar.
+
+Verificado con estado simulado: retratos + polaroids de escena + notas + pista falsa tachada, con el hilo
+tejido; captura correcta. Las fotos de objeto aparecen a medida que se generan sus PNG.
+
+### 2026-07-15 (cont.) — Las herramientas ya no pisan la partida; fotos con nombre concreto
+
+Tres cosas, la primera un **bug de datos serio**:
+
+- **`tools/` machacaba `user://savegame.json`.** Síntoma: el tablero solo mostraba ubicaciones, sin
+  personajes ni pistas. La causa NO estaba en `EvidenceBoard`: el save tenía 4 `flags` (`done_plaza`,
+  `done_casa_marta`, `done_emilio`, `done_rosa`) con `clues: []` y `met_chars: []`, un estado **imposible
+  jugando** — `_dlg_emilio` define `clue` y `flag` juntos, y `DialogueScene._finish()` (igual que
+  `SearchView._finish()`) los aplica en el mismo paso: entran los dos o ninguno. Quien lo escribió fue
+  `tools/extract_i18n.gd` (`reset_case()` + `set_flag()`) y/o `tools/test_cap1.gd`, porque `set_flag()` y
+  `add_clue()` llaman a `save_game()`, que escribía sin condiciones en el fichero del jugador.
+  **Fix**: `Global.tool_mode` — cuando está activo `save_game()` no escribe. Lo activan las 4 herramientas
+  (`extract_i18n`, `test_cap1`, `ExtractClues`, `ExtractVoices`). Verificado con un save centinela:
+  antes desaparecía, ahora sobrevive intacto a ejecutar `ExtractI18n`.
+- **Pistas descartadas abajo a la izquierda**: `_populate` ya no mezcla todo junto; separa `kept` de
+  `discarded`, cada grupo se baraja, y las descartadas ocupan **filas propias al final** rellenadas desde la
+  columna 0. Quedan agrupadas en la esquina inferior izquierda, en gris, tachadas y fuera del hilo rojo.
+- **Fotos de objeto con nombre legible**: `assets/objects/<sha1(title)[:12]>.png` → **`<slug-del-título>.png`**
+  (`El pañuelo` → `el-panuelo.png`). El slug se deriva del título en ambos lados —`Global.clue_slug()` en
+  Godot y `slugify()` en `gen_objects.py`— así que **no hace falta fichero índice**. Renombrados los 43 PNG,
+  reescritas las 49 claves de `OBJECTS` (ahora se lee de un vistazo qué foto es cada una) y `seed_for()`
+  pasa a hashear el slug (ya no es hex; renombrar un objeto cambia su semilla en `--force`).
+
+Verificado: los 201 títulos dan **201 slugs únicos, sin colisiones**, y **0 discrepancias entre Godot y
+Python**; 43/43 PNG enlazan con una pista real; reimport limpio; captura del tablero con "El pañuelo"
+mostrando su polaroid (la ñ atraviesa bien todo el camino) y las descartadas abajo a la izquierda.
+
+**Pendiente**: el `savegame.json` actual sigue con los 4 `flags` sin pistas que dejó la herramienta. Ese
+progreso ya no es recuperable (y deja el Cap 1 inconsistente: 4 localizaciones "hechas" sin las pistas que
+`clues4` pide). Lo suyo es **Nueva partida**.
+
+### 2026-07-15 (cont.) — Destello de la prueba descubierta
+
+Al descubrirse una pista **con foto**, la polaroid aparece un instante sobre la conversación antes de que
+la escena funda a negro (`DialogueScene._flash_clue_photo`): entra creciendo (TRANS_BACK) sobre un velo
+negro al 60 %, se sostiene `CLUE_HOLD` = 1,1 s y se va. Lleva el mismo lenguaje visual que el tablero
+(crema, rótulo con el título, ligera rotación) y suena `SFX_NOTE`.
+
+- **Dónde**: en `_finish()`, que es donde la pista se registra de verdad (durante los beats aún no existe).
+  Va **antes** del fundido, así que se ve sobre el diálogo y no en el mapa.
+- **Cuándo**: solo si `result.clue` es una pista **nueva y no falsa** y tiene foto. Las falsas no lucen
+  polaroid (se descartan, y el mapa ya avisa); las pistas sin foto (conceptos, deducciones) cierran como
+  siempre. Posicionada al 40 % de altura para no pisar el cuadro de diálogo.
+- El lookup de la foto sube de `EvidenceBoard._object_image_for` a **`Global.clue_image(title)`**, ahora que
+  lo usan tanto el tablero como el diálogo (una sola fuente, junto a `clue_slug`).
+
+Verificado con capturas del diálogo real de `casa_marta`: la polaroid de "La cita sin nombre" (la agenda)
+sale centrada y sin tapar el texto. Comprobado también el camino sin foto (`emilio` → "El grito" no tiene):
+no destella y la escena cierra normal. `test_cap1` sigue con los mismos 22 fallos preexistentes.
+
+**Nota**: `tools/test_cap1.gd` tiene **22 fallos preexistentes** (todo el playthrough del Cap 1: ninguna
+localización marca su flag ni aporta pistas). Verificado con `git stash` que fallan igual **sin** los
+cambios de hoy: vienen de antes y siguen sin diagnosticar.
+
+### 2026-07-15 (cont.) — Controles de zoom del tablero, más discretos
+
+- Fuera el **rótulo del zoom** (`×1.0`): sobra ruido en el corcho. Eliminados también `_zoom_label` y su
+  actualización en `_apply_transform()`, para no dejar código muerto.
+- Botones **+/− más pequeños**: 64×56 → **44×40**, fuente 32 → 22, y la caja se ajusta (separación 10 → 8,
+  alto 186 → 88). El zoom sigue igual de accesible por rueda, arrastre y pinch.
+
+Verificado con captura del tablero: botones discretos abajo a la derecha, sin cifra.
+
+### 2026-07-15 (cont.) — Las descartadas, en un montón con un solo pin
+
+Las pistas falsas ya no se reparten por la rejilla (una celda y un pin cada una): ahora van **amontonadas**
+en la esquina inferior izquierda, unas sobre otras y clavadas por un **único pin** (`_stack_discarded`).
+
+- Todas comparten el centro de **una sola celda**, con desplazamiento corto (±9/±7) y giro marcado (±12°):
+  se ve que es un montón y no una tarjeta suelta. La última añadida queda encima y es la única legible.
+- El **pin va al final** (se dibuja sobre el montón), colocado en el borde superior de la tarjeta de arriba
+  con la misma fórmula rotada que usa el hilo. Para que no lleven pin propio, `_make_note()` y
+  `_make_object_photo()` aceptan `with_pin` (false para las falsas).
+- La rejilla la dimensiona ya solo lo clavado (`kept`); el montón entero gasta una celda en fila nueva.
+  `_thread_nearest()` se simplifica: recibe solo lo clavado, así que ya no filtra por `crossed`.
+
+Verificado con captura usando las 5 falsas reales del red herring del exnovio: montón abajo a la izquierda,
+un pin, solo legible la de encima, y el hilo rojo sin tocarlas. `test_cap1` sigue en los mismos 22 fallos
+preexistentes.
+
+### 2026-07-15 (cont.) — Builds de Windows, Android y **nueva plataforma: Web**
+
+Reexportados los tres con todo lo de hoy dentro:
+
+| Plataforma | Salida | Tamaño | Tipo |
+|---|---|---|---|
+| Windows | `build/sOC.exe` | 237 MB | release, PCK embebido |
+| Android | `build/sOC.apk` | 175 MB | **debug** firmada con la keystore de debug (arm64+arm32) |
+| **Web** | `build/web/` | 172 MB | release (`index.pck` 133 MB + `index.wasm` 38 MB) |
+
+- **Nuevo `[preset.2]` "Web"** en `export_presets.cfg`, con **`variant/thread_support=false`**: usa el template
+  **nothreads**, así que se puede alojar en **cualquier hosting estático** (itch.io, GitHub Pages) sin
+  cabeceras COOP/COEP ni SharedArrayBuffer. Con hilos habría que servirlo con cross-origin isolation.
+- Android sigue en **debug** por el patrón ya establecido (la release con keystore propia sigue pendiente).
+
+Verificado el build web de verdad, no solo que generase ficheros: servido con `python -m http.server` y
+cargado en **Chrome headless** (swiftshader). Arranca: WebGL 2.0 inicializa, Godot bootea y **renderiza el
+splash de la iglesia** — captura comprobada, no un frame en blanco. Sin errores de la aplicación en consola.
+
+**Aviso**: `index.pck` pesa 133 MB, así que la primera carga en web es lenta; el grueso son las ~1092 voces
+mp3 y el arte 4K. Si la web importa, tocaría un preset con `exclude_filter` para las voces (en web ya hay
+TTS del navegador) o texturas más pequeñas.
+
+### 2026-07-15 (cont.) — El tablero deja de ser escaparate: **se juega** (prototipo, Cap. 1)
+
+Hasta ahora el tablero se construía solo y no decidía nada: el capítulo lo cerraba el diálogo de cierre.
+Ahora **unir las pistas es la mecánica que cierra el caso**. Prototipo solo en el **Capítulo 1**; el resto
+sigue exactamente igual hasta validarlo.
+
+**La mecánica.** El jugador **tiende el hilo rojo** arrastrando de una pista a otra. Si las dos forman una
+pareja prevista, el hilo se queda clavado y se canta la deducción; si no, se tiende un instante en ámbar y
+se cae (**sin penalización**, mismo criterio que `DeduceView`: equivocarse es parte de pensar). Unir las
+**tres parejas** cierra el caso.
+
+**Los datos (`Story.gd`).** `CH1_LINKS`: tres parejas que cubren las 6 pistas reales del capítulo, cada
+pista en **una sola** pareja (la solución es única, el tablero no admite dos lecturas):
+
+| Pareja | Deducción |
+|---|---|
+| La puerta principal ↔ El campanario | No salió por la puerta y el campanario estaba abierto: la sacaron por arriba. |
+| El grito ↔ El pañuelo | El grito junto al altar, el pañuelo al pie de la escalera: ese es el camino que hizo. |
+| La cita sin nombre ↔ El encapuchado | La cita de las 23:00 no llevaba nombre porque era él. |
+
+Capítulos **sin `links`** → `Story.links()` vacío → tablero escaparate de siempre. El prototipo no toca al
+resto.
+
+**El engranaje del cierre.** El tablero **no avanza de capítulo por su cuenta**: al resolverlo marca
+`tablero_cap1` y emite `case_closed`; `CityMap._on_board_case_closed()` encadena el **epílogo**
+(`"epilogue": "comisaria"`, la escena del sargento Núñez, que se conserva entera) y es ese diálogo el que
+activa `end_flag` y dispara `_advance_chapter()` **por la vía de siempre**. La comisaría pasa a
+`"req": "tablero_cap1"`, así que **no se puede saltar el tablero** yendo allí a mano.
+
+**Modos del `EvidenceBoard`.** Jugable solo si hay parejas, el caso sigue abierto y están **todas** las
+pistas implicadas (se muestran solo las descubiertas); si falta alguna, avisa "Faltan pistas por encontrar".
+Jugando **se apaga el hilo decorativo** (`_thread_nearest`), o no se distinguiría del hilo del jugador. El
+arrastre convive con el pan/zoom: pulsar sobre una pista tiende hilo, sobre el corcho desnudo arrastra el
+tablero; dos dedos siguen siendo pinch. El hit-test va por transformada inversa (las tarjetas van rotadas).
+Las parejas ganadas **se recuerdan por bandera** (`link_<cap>_<i>`): cerrar el tablero a medias no obliga a
+rehacerlas. Las pistas **falsas no se enganchan** (siguen en su montón).
+
+**Verificado de verdad, no "compila".** Nuevo `tools/test_board.gd/.tscn`: monta el `EvidenceBoard` real y
+**tiende hilos mandando eventos de ratón** (press/move/release), entrando por `_on_viewport_input` como el
+juego. **19/19 OK**: no jugable con pistas a medias, pareja mala rechazada, las buenas se quedan, pista ya
+atada no se re-arrastra, las tres cierran el caso, `case_closed` emitida, el tablero no avanza capítulo, y
+el progreso sobrevive a reabrir. `tools/shot_board.gd/.tscn` da la captura a ojo (tablero abierto + hilo
+tendido).
+
+**Los "22 fallos preexistentes" de `test_cap1` eran el test, no el juego.** Llevaban desde el tutorial:
+`Global.reset_case()` arranca en el **capítulo 0**, así que el playthrough del Cap. 1 corría sobre las
+localizaciones del tutorial y fallaba **entero**. Una línea (`Global.chapter = 1` tras el reset) lo deja en
+**1 fallo**… que era **este cambio**, legítimamente cazado: la comisaría ya no se desbloquea sola. Con el
+playthrough actualizado al flujo nuevo (comisaría bloqueada hasta atar las pistas → `_play_board()` juega el
+tablero de verdad, con las parejas sacadas de `Story.links()` para no repetirlas a mano → comisaría abierta
+→ visita), **1679/1679 OK, 0 fallos**: el Capítulo 1 pasa completo por primera vez.
+
+**Pendiente**: validar la mecánica jugando y, si engancha, autorar las parejas de los capítulos 2–20.
+
+### 2026-07-16 — El tablero, en LOS 20 capítulos · fuera las voces · ojos · v2026.07.16.1
+
+**El tablero cierra ya todos los casos (Cap. 1–20).** Cada capítulo define sus parejas
+(`CH1_LINKS`…`CH20_LINKS`, **40 en total**), su `links_flag` (`tablero_capN`) y su `epilogue`
+(`cierreN`; en el Cap. 1, `comisaria`). El `req` de cada cierre pasa de `capN_completo` a
+`tablero_capN`: **la mecánica no se puede saltar**. El **tutorial (Cap. 0) NO lleva**: sus "pistas" son
+instrucciones ("Leer el escenario"), no pruebas que atar. Aviso: el tutorial ya no enseña el bucle
+completo, porque no enseña el tablero.
+
+Criterio al autorar (documentado sobre las constantes): títulos EXACTOS —varias pistas de escena van
+**sin tildes** (`Aranazos en la reja`, `Los blisters vacios`, `El albaran interno`…)—, solo pistas
+verdaderas, cada pista en una pareja como mucho, y **no hace falta cubrir todas**: que sobre alguna es
+parte del juego (decidir qué importa); el contador (x/N) dice cuántas hay. Los capítulos 7–20 tienen 4
+pistas → 2 parejas; el 1 tiene 8 → 4; el 2 y el 3, 3 parejas.
+
+**Bug real cazado: el Cap. 1 tenía 8 pistas, no 6.** Las escenas de búsqueda sueltan dos más ("El reflejo
+en el charco", "La taza a medias") que el playthrough no veía porque `_visit()` iba directo al diálogo.
+Con 3 parejas, dos pistas quedaban colgando. Ahora `_visit()` **resuelve antes la mini-escena** como hace
+`CityMap._open_dialogue()` (y es fiel: de una búsqueda no se sale sin la pista, `_finish()` es su única
+salida), y hay una 4ª pareja. De ahí que la casa de Marta aporte 2 pistas y el capítulo acabe con 8.
+
+**Validador de parejas (`_validate_links`)**: 40 parejas son 80 títulos a mano; una tilde de más y esa
+pareja sería IMPOSIBLE de unir, dejando el capítulo sin cerrar. Comprueba, en los 21 capítulos, que los
+títulos existan como pista real de ESE capítulo, que no se reutilice una pista, que cada pareja cante su
+deducción, y que el cierre exija el tablero. (Ojo: hay que limpiar `Global.flags` antes, o `get_dialogue()`
+devuelve la variante de revisita, que no da pista.)
+
+**Fuera las voces y los blips, en todos los idiomas.** Se probaron los tres caminos (blips sintetizados por
+formantes, TTS del sistema, mp3 pregrabados con edge-tts) y ninguno convencía. Se van **189 líneas** de
+`Global.gd` (`_build_voice`, `_blip_for`, `play_voice`, `_init_tts`, `speak_line`, `voice_line`,
+`stop_speaking`, `VOICE_PITCH`/`VOICE_FEMALE`…) y sus llamadas en `DialogueScene`. El diálogo se queda con
+la máquina de escribir y su SFX. Los **2190 mp3 (68 MB) NO se han borrado** —no estaban commiteados y son
+~1 h de render—: van con `exclude_filter="assets/voices/*"` en los 3 presets, así que salen del build (y de
+paso el `index.pck` de web adelgaza mucho). Para tirarlos del disco: `rm -rf assets/voices` y, si acaso,
+`tools/gen_voices.py` + `tools/ExtractVoices.*`, que quedan como herramienta muerta.
+
+**Diálogo de "Saltar tutorial" con el estilo del juego.** Era un `ConfirmationDialog` con el tema por
+defecto de Godot. Ahora es un overlay propio con el mismo lenguaje que el resto (fondo atenuado + panel
+oscuro, borde de acento, `_mini_button`), como el "Acerca de" del menú.
+
+**Ojos de rosa/nano/voluntario — la causa NO era la semilla.** El generador reescalaba con
+**`realesrgan-x4plus` (modelo de FOTO) sobre arte anime**: desde el ADR-044 el arte es cel-shaded, pero el
+upscale se quedó sin cambiar. Sobre zonas planas y linework alucina textura, y donde más se notaba era en
+los ojos (un iris de otro color, mirada saltona) — defectos que en el 768 original no estaban y **aparecían
+al subir a 4K**. **ADR-047**: los retratos se reescalan con `realesrgan-x4plus-anime` (las escenas siguen
+con x4plus: cambiarlo obligaría a regenerar los ~80 fondos). Además:
+- **ADR-046**: `EYES_HINT` en el prompt de retrato (simetría, iris iguales, sin ojo deformado).
+- `seed_for()` usaba `hash()` de Python, **aleatorizado por proceso**: la misma llamada daba una imagen
+  distinta cada vez y el arte no se podía reproducir. Ahora es md5 (estable) + `SEED_OVERRIDE`, donde se
+  ANOTA la semilla de un retrato que sale bien: rosa=140011, nano=627433, voluntario=790225.
+- Lección de método: los ojos **no se pueden juzgar en una miniatura de cuerpo entero** (se colaron dos
+  candidatos con los iris de distinto color). Se eligen sobre una hoja de contactos de la franja de los
+  ojos ampliada, y se verifica el PNG **final a 4K**, que es donde el upscale enseña la costura.
+- Originales guardados en `assets/_backup_ojos_2026-07-15/`.
+
+**Verificado**: `test_cap1` **1959/1959 OK** (incluye el playthrough completo del Cap. 1 con el tablero
+jugado a eventos de ratón, y las 40 parejas de los 20 capítulos) y `test_board` **23/23 OK** (ahora saca
+pistas y parejas de `Story.links()`, así que no se queda atrás al cambiar los datos). Ojos finales de los
+tres retratos comprobados recortados y ampliados sobre el PNG de 4K.
+
+**Pendiente**: jugar de verdad las parejas de los capítulos 2–20 (están validadas por estructura, no por
+diversión); decidir si el tutorial debe enseñar el tablero; y **nada de esto está commiteado**.
+
+**Añadido: `ruben` regenerado (mismo motivo que rosa/nano/voluntario).** Su retrato estaba **pintado
+semi-realista** (más digital-painting que anime) y con marca de agua: era arte del pipeline viejo, anterior
+al ADR-047. Regenerado con el pipeline actual (modelo anime + `EYES_HINT`), sale cel-shaded coherente con el
+resto del cast y sin marca de agua; ojos verificados a 4K. Semilla anotada en `SEED_OVERRIDE` (ruben=295762,
+la de la md5). Original en `assets/_backup_ojos_2026-07-15/`. **Sospecha**: puede haber más retratos del
+pipeline viejo con el mismo desajuste de estilo; conviene una pasada al cast completo cuando haya un rato.
 
 ---
 *Fin del documento. Recordatorio: actualizar secciones 5–7 y añadir entrada en la

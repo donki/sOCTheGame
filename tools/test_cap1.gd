@@ -26,7 +26,9 @@ func _check(cond: bool, msg: String) -> void:
 
 
 func _run() -> void:
+	Global.tool_mode = true   # el playthrough de test NO debe pisar la partida real
 	Global.reset_case()
+	Global.chapter = 1        # reset_case arranca en el 0 (tutorial); esto prueba el Cap. 1
 
 	print("\n=== Validación de assets ===")
 	_validate_assets()
@@ -48,7 +50,8 @@ func _run() -> void:
 	_check(Story.location_state("casa_marta") == "available", "Casa de Marta: disponible tras la plaza")
 	var m_before: int = Global.clues.size()
 	await _visit("casa_marta")
-	_check(Global.clues.size() == m_before + 1, "Casa de Marta: aporta 1 pista")
+	# Dos: la de la escena de búsqueda (la taza) y la del diálogo (la cita).
+	_check(Global.clues.size() == m_before + 2, "Casa de Marta: aporta 2 pistas (escena + diálogo)")
 	_check(Global.has_flag("done_casa_marta"), "Casa de Marta: marcada como visitada")
 
 	for id in ["emilio", "rosa", "tomas", "carmen"]:
@@ -63,8 +66,16 @@ func _run() -> void:
 
 	await _visit("iglesia")
 	_check(Global.has_flag("cap1_completo"), "Capítulo 1 COMPLETADO tras la iglesia")
-	_check(Global.clues.size() == 6, "6 pistas tras la iglesia (cita + 4 de calle + pañuelo)")
-	_check(Story.location_state("comisaria") == "available", "Comisaría DESBLOQUEADA")
+	# 8 = las 6 de diálogo (cita + 4 de calle + pañuelo) y las 2 de escena
+	# (el reflejo en el charco, la taza a medias). Las 8 se atan en el tablero.
+	_check(Global.clues.size() == 8, "8 pistas tras la iglesia (6 de diálogo + 2 de escena)")
+
+	# El caso ya no lo cierra la comisaría: lo cierra el TABLERO. Hasta atar las
+	# pistas, el cierre sigue bajo llave (no se puede saltar el tablero).
+	_check(Story.location_state("comisaria") == "locked", "Comisaría BLOQUEADA hasta atar las pistas")
+	await _play_board()
+	_check(Global.has_flag("tablero_cap1"), "Tablero: las 3 parejas cierran el caso")
+	_check(Story.location_state("comisaria") == "available", "Comisaría DESBLOQUEADA tras el tablero")
 
 	await _visit("comisaria")
 	_check(Global.has_flag("done_comisaria"), "Comisaría visitada (gancho al cap. 2)")
@@ -79,6 +90,9 @@ func _run() -> void:
 
 	# Cada red herring de CADA capítulo (1-20) debe repartir 5 pistas FALSAS.
 	_validate_red_herrings()
+
+	# Las parejas del tablero de LOS 20 capítulos: que sean jugables de verdad.
+	_validate_links()
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +134,69 @@ func _validate_red_herrings() -> void:
 	Global.chapter = 1
 
 
+## Las parejas del tablero (Story.CHX_LINKS) son texto escrito a mano: un título con
+## una tilde de más y esa pareja sería IMPOSIBLE de unir, dejando el capítulo sin
+## cerrar. Esto lo caza aquí y no en la partida de alguien.
+## Comprueba, capítulo a capítulo: que los títulos existan como pista REAL de ESE
+## capítulo, que no se repita una pista en dos parejas (el tablero no la reutiliza),
+## que no se ate una pista consigo misma, y que el cierre esté regateado por el
+## tablero (si no, se podría saltar la mecánica yendo a la comisaría).
+func _validate_links() -> void:
+	print("=== Validación de las parejas del tablero ===")
+	# Con banderas puestas, get_dialogue() devuelve la variante de REVISITA (que no
+	# da pista): hay que mirar los capítulos como los ve una partida nueva.
+	Global.flags.clear()
+	for ch in range(0, 21):
+		Global.chapter = ch
+		var links: Array = Story.links()
+		if links.is_empty():
+			continue
+		var reales := _real_clue_titles(ch)
+		var usadas: Dictionary = {}
+		for l in links:
+			var a := String(l.get("a", ""))
+			var b := String(l.get("b", ""))
+			_check(a in reales, "Cap %d · '%s' es pista real del capítulo" % [ch, a])
+			_check(b in reales, "Cap %d · '%s' es pista real del capítulo" % [ch, b])
+			_check(a != b, "Cap %d · pareja de dos pistas distintas" % ch)
+			_check(not usadas.has(a) and not usadas.has(b),
+				"Cap %d · '%s'+'%s' no reutilizan pista de otra pareja" % [ch, a, b])
+			usadas[a] = true
+			usadas[b] = true
+			_check(String(l.get("text", "")) != "", "Cap %d · la pareja canta su deducción" % ch)
+		# El cierre del capítulo debe exigir el tablero, o la mecánica sería opcional.
+		var epi := Story.epilogue_id()
+		_check(epi != "", "Cap %d · tiene epílogo declarado" % ch)
+		var found := false
+		for loc in Story.locations():
+			if String(loc.id) == epi:
+				found = true
+				_check(String(loc.get("req", "")) == Story.links_flag(),
+					"Cap %d · el cierre '%s' exige el tablero" % [ch, epi])
+		_check(found, "Cap %d · el epílogo '%s' existe en el mapa" % [ch, epi])
+
+
+## Títulos de las pistas VERDADERAS que el capítulo llega a soltar, diálogos y
+## mini-escenas incluidas (las de escena están garantizadas: no se sale de una
+## búsqueda sin encontrar la pista).
+func _real_clue_titles(ch: int) -> Array:
+	Global.chapter = ch
+	var out: Array = []
+	for loc in Story.locations():
+		for d in [Story.get_dialogue(String(loc.id)), Story.interact_data(String(loc.id))]:
+			var cs: Array = []
+			if typeof(d.get("clue")) == TYPE_DICTIONARY:
+				cs.append(d["clue"])
+			for c in d.get("clues", []):
+				cs.append(c)
+			for c in cs:
+				if typeof(c) == TYPE_DICTIONARY and not bool(c.get("false", false)):
+					var t := String(c.get("title", ""))
+					if t != "" and not (t in out):
+						out.append(t)
+	return out
+
+
 func _validate_all_chapters() -> void:
 	for ch in range(2, 21):
 		Global.chapter = ch
@@ -148,12 +225,79 @@ func _validate_beats(beats: Array, id: String) -> void:
 # ---------------------------------------------------------------------------
 #  PLAYTHROUGH REAL (conduce el DialogueView como una jugadora)
 # ---------------------------------------------------------------------------
+## Juega el TABLERO como la jugadora: monta el EvidenceBoard real y tiende los hilos
+## mandando eventos de ratón (press sobre una pista, mover, soltar sobre la otra).
+## Las parejas salen de Story.links(), así que el test no las repite a mano: si
+## cambian los datos del capítulo, esto sigue valiendo.
+func _play_board() -> void:
+	var b := EvidenceBoard.new()
+	add_child(b)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not b._play:
+		_check(false, "Tablero: jugable con las 6 pistas")
+		b.free()
+		return
+	for l in Story.links():
+		_drag_thread(b, String(l["a"]), String(l["b"]))
+	await get_tree().create_timer(2.0).timeout   # el cierre se canta antes de emitir
+	if is_instance_valid(b):
+		b.free()
+
+
+func _drag_thread(b: EvidenceBoard, from_title: String, to_title: String) -> void:
+	var from_vp: Vector2 = _card_vp(b, from_title)
+	var to_vp: Vector2 = _card_vp(b, to_title)
+	var down := InputEventMouseButton.new()
+	down.button_index = MOUSE_BUTTON_LEFT
+	down.pressed = true
+	down.position = from_vp
+	b._on_viewport_input(down)
+	var move := InputEventMouseMotion.new()
+	move.position = to_vp
+	b._on_viewport_input(move)
+	var up := InputEventMouseButton.new()
+	up.button_index = MOUSE_BUTTON_LEFT
+	up.pressed = false
+	up.position = to_vp
+	b._on_viewport_input(up)
+
+
+## Centro de la tarjeta de una pista, en coordenadas del viewport del tablero:
+## donde pincharía una persona.
+func _card_vp(b: EvidenceBoard, title: String) -> Vector2:
+	var node: Control = b._clue_nodes[title]["node"]
+	return b._content_host.get_transform() * (node.position + node.size * 0.5)
+
+
+## Visita una localización como el juego: si es la PRIMERA vez y tiene mini-escena
+## (búsqueda/examinar/…), esa escena se resuelve antes y suelta su pista, igual que
+## hace CityMap._open_dialogue(); después va el diálogo. Sin esto el playthrough se
+## saltaba las pistas de escena y el capítulo se quedaba corto de pistas.
 func _visit(id: String) -> void:
+	var idata: Dictionary = Story.interact_data(id)
+	if not idata.is_empty() and not Global.has_flag("done_" + id) \
+			and not Global.has_flag(String(idata.get("flag", ""))):
+		_resolve_interaction(idata)
 	var dlg: Dictionary = Story.get_dialogue(id)
 	if dlg.is_empty():
 		_check(false, "%s: get_dialogue devolvió vacío" % id)
 		return
 	await _play(dlg)
+
+
+## Desenlace de una mini-escena, igual que hace su vista al terminar (p. ej.
+## SearchView._finish()): concede la pista y marca la bandera. No se puede salir de
+## una búsqueda sin encontrar la pista, así que esto es lo que SIEMPRE ocurre.
+func _resolve_interaction(idata: Dictionary) -> void:
+	if typeof(idata.get("clue")) == TYPE_DICTIONARY:
+		var cl: Dictionary = idata["clue"]
+		Global.add_clue(String(cl.title), String(cl.text), cl.get("false", false))
+	for c in idata.get("clues", []):
+		if typeof(c) == TYPE_DICTIONARY:
+			Global.add_clue(String(c.title), String(c.text), c.get("false", false))
+	if idata.has("flag"):
+		Global.set_flag(String(idata.flag), true)
 
 
 func _play(dlg: Dictionary) -> void:

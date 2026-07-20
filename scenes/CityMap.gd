@@ -24,6 +24,8 @@ var _notebook_label: Label
 var _board_area: Control      # (obsoleto) zona del panel de pistas antiguo
 var _board: Control           # instancia del TABLERO (EvidenceBoard) abierto, si lo hay
 var _busy := false
+var _advancing := false         # avance de capítulo en curso: evita reentrada (doble toque)
+var _skipped := false           # el tutorial ya se saltó una vez: no repetir
 var _current := Vector2(-1, -1)
 var _shown: Dictionary = {}     # localizaciones ya reveladas (para avisar de nuevas)
 var _first_refresh := true
@@ -287,6 +289,8 @@ func _update_objective() -> void:
 		txt = Global.loc("▸ Sigue el hilo del caso.")
 	elif not Global.has_flag(Story.complete_flag()):
 		txt = Global.loc("▸ Ya tienes las pistas. Ve al lugar clave del caso.")
+	elif not Story.links().is_empty() and not Global.has_flag(Story.links_flag()):
+		txt = Global.loc("▸ Reconstruye el caso en el tablero (N): une pista, persona y zona.")
 	elif not Global.has_flag(Story.end_flag()):
 		txt = Global.loc("▸ Cierra el caso: informa en la comisaría.")
 	elif Story.is_last_chapter():
@@ -605,6 +609,12 @@ func _on_dialogue_finished(result: Dictionary, _id: String) -> void:
 ## atenuado + panel oscuro con borde de acento): un ConfirmationDialog sale con el
 ## tema por defecto de Godot y desentona con todo lo demás.
 func _confirm_skip_tutorial() -> void:
+	if _skipped or _advancing:
+		return                       # ya se está saltando: no apilar otro diálogo
+	# Deshabilita el botón mientras el diálogo está abierto: dos velos a pantalla
+	# completa apilados dejarían la entrada bloqueada (el "cuelgue" al saltar).
+	if is_instance_valid(_skip_btn):
+		_skip_btn.disabled = true
 	var layer := Control.new()
 	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.z_index = 120
@@ -657,7 +667,10 @@ func _confirm_skip_tutorial() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_child(row)
 
-	var back := _mini_button("Seguir", func() -> void: layer.queue_free())
+	var back := _mini_button("Seguir", func() -> void:
+		layer.queue_free()
+		if is_instance_valid(_skip_btn):
+			_skip_btn.disabled = false)
 	back.custom_minimum_size = Vector2(150, 40)
 	row.add_child(back)
 
@@ -777,6 +790,10 @@ func _show_kofi_support(on_continue: Callable) -> void:
 
 ## Marca el tutorial como completado y salta al primer caso real (Cap. 1).
 func _skip_tutorial() -> void:
+	if _skipped or _advancing:
+		return                       # un doble toque no debe saltar dos capítulos
+	_skipped = true
+	_busy = false                    # por si acaso: que la entrada no quede bloqueada
 	Global.set_flag("cap0_completo", true)
 	Global.set_flag("done_cierre0", true)
 	if is_instance_valid(_skip_btn):
@@ -785,6 +802,11 @@ func _skip_tutorial() -> void:
 
 
 func _advance_chapter() -> void:
+	# Reentrada: un doble toque (o el camino normal + el skip a la vez) podría
+	# reconstruir el mapa a media transición y dejar el juego colgado.
+	if _advancing:
+		return
+	_advancing = true
 	Global.chapter += 1
 	Global.save_game()
 	Music.play_mood(_map_mood())   # el nuevo capítulo puede oscurecer el ambiente
@@ -806,6 +828,7 @@ func _advance_chapter() -> void:
 	call_deferred("_relayout")
 	call_deferred("_refresh")
 	_show_toast(Global.loc("Nuevo caso: %s") % Global.loc(Story.chapter_title()), Color(0.40, 0.90, 0.98))
+	_advancing = false
 
 
 # ---------------------------------------------------------------------------
@@ -841,7 +864,9 @@ func _fly_clue_to_notebook(is_false: bool, delay: float = 0.0) -> void:
 	var vp := get_viewport_rect().size
 	card.position = vp * 0.5 - cs * 0.5
 	add_child(card)
-	var target := _nb_btn.global_position + _nb_btn.size * 0.5 - cs * 0.5
+	# Aterriza CENTRADO sobre el botón de la libreta (rect real, no la posición cruda),
+	# y un poco más arriba para que quede claramente ENCIMA del botón, no debajo-derecha.
+	var target := _nb_btn.get_global_rect().get_center() - cs * 0.5 - Vector2(0.0, cs.y * 0.18)
 	var t := create_tween()
 	if delay > 0.0:
 		t.tween_interval(delay)

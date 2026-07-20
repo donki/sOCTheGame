@@ -16,6 +16,7 @@ Uso:
     python tools/gen_assets.py --backend gemini     # via API oficial (GEMINI_API_KEY)
 """
 import base64
+import hashlib
 import io
 import json
 import os
@@ -34,6 +35,16 @@ REALESRGAN_EXE = os.path.join(REALESRGAN_DIR, "realesrgan-ncnn-vulkan.exe")
 # Tamano final del arte tras el upscale IA (Pollinations da ~1024 nativos; ESRGAN x4
 # anade detalle real y luego se ajusta a estos objetivos).
 TARGET = {"portrait": (2400, 3200), "scene": (3840, 2160)}  # retrato 4K (3:4) · escena 4K UHD
+
+
+# ADR-047: los RETRATOS se reescalan con el modelo ANIME. Desde el ADR-044 el arte es
+# anime cel-shaded, pero el upscale seguia con realesrgan-x4plus (modelo de FOTO): sobre
+# zonas planas y linework alucina textura fotografica, y donde mas se notaba era en los
+# ojos (iris de distinto color, mirada saltona) — defectos que en el 768 original no
+# estaban y aparecian al subir a 4K. x4plus-anime respeta el cel-shading.
+# Las ESCENAS siguen con x4plus: todas las existentes se generaron asi y cambiarlo
+# obligaria a regenerar los ~80 fondos.
+UPSCALE_MODEL = {"portrait": "realesrgan-x4plus-anime", "scene": "realesrgan-x4plus"}
 
 
 def upscale_esrgan(img, model="realesrgan-x4plus"):
@@ -133,12 +144,20 @@ STYLE_SCENE = (
 ANIME_PORTRAIT_LEAD = ("Anime cel-shaded illustration, modern high-quality anime style "
     "(Makoto Shinkai / Kyoto Animation), strong clean anime linework, expressive anime "
     "eyes, ")
+# ADR-046: los ojos eran el punto flaco (rosa/nano/voluntario salieron con un ojo
+# deformado, de otro tamano o con el iris partido: el artefacto tipico de Flux). Se
+# insiste de forma explicita en la simetria y en que los DOS ojos coincidan; vale para
+# cualquier retrato que se regenere, no solo los tres que se rehicieron.
+EYES_HINT = ("both eyes perfectly symmetrical and identical in shape, size and iris color, "
+    "correct human eye anatomy, both irises fully round and centered, clean matching "
+    "catchlights in both eyes, no deformed eye, no lazy eye, no melted or damaged eye, "
+    "no cross-eye, no extra iris")
 STYLE_PORTRAIT = (
     ", anime cyberpunk-noir character portrait in the unified 'mansion' color grade: modern "
     "high-quality anime style fused with neon-noir, clean cel shading, expressive detailed "
-    "eyes with bright catchlights, warm amber/golden key light on the face with a cold "
-    "storm-blue neon rim light, deep rich shadows, muted slightly desaturated palette, "
-    "restrained neon, delicate clean linework, cinematic mood, sharp focus")
+    "eyes with bright catchlights, " + EYES_HINT + ", warm amber/golden key light on the "
+    "face with a cold storm-blue neon rim light, deep rich shadows, muted slightly "
+    "desaturated palette, restrained neon, delicate clean linework, cinematic mood, sharp focus")
 
 # ADR-045: las ESCENAS tambien front-cargan un lead anime fuerte (como los retratos). El
 # sufijo STYLE_SCENE iba al final y no podia con prompts .md muy fotograficos («graphic-novel
@@ -164,8 +183,25 @@ def extract_prompt(md_path):
     return " ".join(m.group(1).strip().split())
 
 
+# Semilla ELEGIDA a mano para un asset concreto. Los ojos son una loteria en Flux
+# (un ojo de otro color, de otro tamano, o partido), asi que cuando un retrato sale
+# bien se ANOTA aqui su semilla y deja de ser cuestion de suerte: regenerarlo
+# devuelve exactamente el mismo. Se eligieron mirando 4 candidatos de cada uno.
+SEED_OVERRIDE = {
+    "rosa": 140011,        # los dos iris iguales; elegida mirando los OJOS ampliados
+    "nano": 627433,        # ojos ambar iguales, sin la marca de agua del anterior
+    "voluntario": 790225,  # ojos simetricos y cara nerviosa, como pide el personaje
+    "ruben": 295762,       # regenerado: el anterior salio pintado (semi-realista), no cel-shaded
+}
+
+
 def seed_for(name):
-    return abs(hash(name)) % 1_000_000
+    if name in SEED_OVERRIDE:
+        return SEED_OVERRIDE[name]
+    # hash() de Python va aleatorizado por proceso (PYTHONHASHSEED): con el, la misma
+    # llamada daba una imagen distinta cada vez y el arte no se podia reproducir.
+    # md5 es estable entre ejecuciones y maquinas.
+    return int(hashlib.md5(name.encode("utf-8")).hexdigest()[:8], 16) % 1_000_000
 
 
 # ---------------------------------------------------------------------------
@@ -210,7 +246,7 @@ def gen_pollinations(name, prompt, kind):
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     # Detalle real: Real-ESRGAN x4 en la GPU y ajuste al tamano objetivo (4K/2K).
     tw, th = TARGET[kind]
-    img = upscale_esrgan(img)
+    img = upscale_esrgan(img, UPSCALE_MODEL[kind])
     if img.size != (tw, th):
         if img.size[0] >= tw:                       # bajamos del x4 -> nitidez maxima
             img = img.resize((tw, th), Image.LANCZOS)

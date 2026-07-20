@@ -15,12 +15,15 @@ const COL_WARM := Color(0.95, 0.66, 0.38)         # calido antorcha
 const COL_TEXT := Color(0.86, 0.88, 0.92)
 const COL_TEXT_MUTED := Color(0.45, 0.50, 0.58)
 
-# --- Tipografia (Kenney, CC0) ---
-# Cuerpo por defecto (Kenney Future) fijado en project.godot.
-const FONT_TITLE_PATH := "res://assets/fonts/Kenney Future Narrow.ttf"  # titulos
-const FONT_ACCENT_PATH := "res://assets/fonts/Kenney High.ttf"          # frases atmosfericas
-const FONT_BODY_PATH := "res://assets/fonts/Kenney Future.ttf"          # cuerpo (por defecto)
+# Tipografias (Google Fonts, OFL): titulo Audiowide, subtitulo Orbitron, y Play para
+# dialogos, nombres, frases atmosfericas y el cuerpo por defecto de la UI (project.godot).
+const FONT_TITLE_PATH := "res://assets/fonts/Audiowide-Regular.ttf"     # titulos
+const FONT_SUBTITLE_PATH := "res://assets/fonts/Orbitron.ttf"           # subtitulos
+const FONT_ACCENT_PATH := "res://assets/fonts/Play-Regular.ttf"         # frases atmosfericas
+const FONT_BODY_PATH := "res://assets/fonts/Play-Regular.ttf"           # dialogos y nombres
 var font_title: Font
+var font_subtitle: Font
+var font_body: Font
 var font_accent: Font
 
 var settings := {
@@ -29,6 +32,7 @@ var settings := {
 	"sfx_volume": 0.9,
 	"fullscreen": false,
 	"language": "es",   # es | en
+	"dialogue_size": 1.0,   # multiplicador del tamaño de letra de los diálogos (0.8–1.6)
 }
 
 # --- Localización (i18n) -------------------------------------------------------
@@ -143,7 +147,7 @@ func add_clue(title: String, text: String, is_false: bool = false) -> bool:
 	for c in clues:
 		if c.title == title:
 			return false
-	clues.append({"title": title, "text": text, "false": is_false})
+	clues.append({"title": title, "text": text, "false": is_false, "chapter": chapter})
 	save_game()          # se guarda a cada pista encontrada
 	return true
 
@@ -210,6 +214,8 @@ func _ready() -> void:
 	_build_fade_layer()
 	_build_sfx()
 	font_title = load(FONT_TITLE_PATH)
+	font_subtitle = load(FONT_SUBTITLE_PATH)
+	font_body = load(FONT_BODY_PATH)
 	font_accent = load(FONT_ACCENT_PATH)
 	# Idioma por defecto: ESPAÑOL. El contenido del juego (todos los diálogos) está en español;
 	# el inglés solo cubre la interfaz, así que autodetectar el idioma del sistema dejaba el splash
@@ -236,7 +242,7 @@ func style_main_title(l: Label, size: int) -> void:
 	l.add_theme_color_override("font_color", COL_TEXT)
 
 func style_subtitle(l: Label, size: int) -> void:
-	l.add_theme_font_override("font", font_title)
+	l.add_theme_font_override("font", font_subtitle)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", COL_ACCENT)
 
@@ -246,7 +252,10 @@ func style_tagline(l: Label, size: int) -> void:
 	l.add_theme_color_override("font_color", COL_TEXT_MUTED)
 
 func style_dialogue(l: Label, size: int) -> void:
-	l.add_theme_font_size_override("font_size", size)      # cuerpo por defecto
+	l.add_theme_font_override("font", font_body)           # Play (dialogos)
+	# Tamaño ajustable desde Opciones (accesibilidad).
+	var scaled := int(round(float(size) * float(settings.get("dialogue_size", 1.0))))
+	l.add_theme_font_size_override("font_size", scaled)
 	l.add_theme_color_override("font_color", COL_TEXT)
 
 

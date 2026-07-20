@@ -14,6 +14,8 @@ signal finished(result: Dictionary)
 
 const TYPE_CPS := 48.0        # caracteres por segundo del efecto maquina de escribir
 const PORTRAIT_H := 0.82      # alto del retrato como fraccion de la pantalla
+const CLUE_CARD := Vector2(300, 344)   # polaroid del destello de prueba descubierta
+const CLUE_HOLD := 1.1        # segundos que se sostiene la foto antes de irse
 
 var _queue: Array = []
 var _dialogue: Dictionary = {}
@@ -26,8 +28,7 @@ var _choosing := false
 var _typing := false
 var _full := ""
 var _typed := 0.0   # progreso fraccional (evita perder decimales al truncar)
-var _who := "narrador"   # hablante actual (para el tono del voice-blip)
-var _last_vis := 0       # último carácter revelado (para disparar blips nuevos)
+var _who := "narrador"   # hablante actual
 
 # Nodos
 var _bg: TextureRect
@@ -35,6 +36,13 @@ var _bg_grad: ColorRect
 var _bg_caption: Label
 var _portrait_l: Panel      # marco (foto de expediente) con el retrato recortado dentro
 var _portrait_r: Panel
+
+# Retrato "vivo": el hablante respira (scale sutil), balancea algo más al hablar
+# (typewriter) y parpadea de vez en cuando. El que no habla ya se atenúa (_dim_portrait).
+var _active_frame: Panel = null
+var _live_t := 0.0
+var _blink_t := 3.0
+var _blink := 0.0
 var _box: Panel
 var _nameplate: Panel
 var _name_label: Label
@@ -251,7 +259,7 @@ void fragment() { COLOR = vec4(0.0, 0.0, 0.0, UV.y * 0.75); }
 	add_child(_nameplate)
 
 	_name_label = Label.new()
-	_name_label.add_theme_font_override("font", Global.font_title)
+	_name_label.add_theme_font_override("font", Global.font_body)   # Play (nombres)
 	_name_label.add_theme_font_size_override("font_size", 20)
 	_nameplate.add_child(_name_label)
 
@@ -383,10 +391,14 @@ func _show_line(beat: Dictionary) -> void:
 	var info: Dictionary = Story.CHARS.get(who, Story.CHARS["narrador"])
 	var is_narration: bool = who == "narrador" or String(info.name).is_empty()
 
+	# El retrato del turno anterior deja de "respirar" (vuelve a su escala normal).
+	_reset_frame_scale(_portrait_l)
+	_reset_frame_scale(_portrait_r)
 	if is_narration:
 		_nameplate.visible = false
 		_dim_portrait(_portrait_l, true)
 		_dim_portrait(_portrait_r, true)
+		_active_frame = null
 		_text.add_theme_color_override("font_color", Global.COL_TEXT_MUTED)
 	else:
 		var side: String = beat.get("side", "right" if who == "detective" else "left")
@@ -399,6 +411,7 @@ func _show_line(beat: Dictionary) -> void:
 		_place_nameplate(side)
 		_dim_portrait(_portrait_l, side != "left")
 		_dim_portrait(_portrait_r, side != "right")
+		_active_frame = _portrait_l if side == "left" else _portrait_r
 		_text.add_theme_color_override("font_color", Global.COL_TEXT)
 
 	_start_typing(String(beat.get("text", "")))
@@ -460,45 +473,22 @@ func _start_typing(text: String) -> void:
 	_text.text = _full
 	_text.visible_characters = 0
 	_typed = 0.0
-	_last_vis = 0
 	_typing = true
 	_hint.visible = false
 	Global.play_sfx(Global.SFX_NOTE, -8.0)
-	Global.speak_line(_who, _full)   # TTS: lee la línea con la voz del personaje
 
 
 func _process(delta: float) -> void:
+	_live_t += delta
+	_update_live_portrait(delta)
 	if _typing:
 		_typed += TYPE_CPS * delta
 		if _typed >= _full.length():
-			_emit_blips(_last_vis, _full.length())
-			_last_vis = _full.length()
 			_text.visible_characters = -1
 			_typing = false
 			_hint.visible = not _choosing
 		else:
-			var vis := int(_typed)
-			if vis > _last_vis:
-				_emit_blips(_last_vis, vis)
-				_last_vis = vis
-			_text.visible_characters = vis
-
-
-## Reproduce un voice-blip cada 3 caracteres revelados (saltando espacios y
-## puntuación), con el tono del hablante actual. Barato y no cansa.
-func _emit_blips(from: int, to: int) -> void:
-	# Voz por personaje: un blip cada 3 caracteres revelados (saltando espacios).
-	# Si hay TTS real, las líneas se LEEN (speak_line) y no hacen falta blips.
-	if Global.tts_available or _who == "narrador":
-		return
-	for i in range(from, to):
-		if i % 3 != 0:
-			continue
-		if i < _full.length():
-			var c := _full[i]
-			if c == " " or c == "\n" or c == "\t":
-				continue
-		Global.play_voice(_who)
+			_text.visible_characters = int(_typed)
 
 
 func _finish_typing() -> void:
@@ -568,6 +558,36 @@ func _pop_in(p: Panel) -> void:
 	p.scale = Vector2(0.98, 0.98)
 	var t := create_tween().set_parallel(true)
 	t.tween_property(p, "scale", Vector2(1, 1), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## Devuelve un marco a su escala normal (deja de "respirar").
+func _reset_frame_scale(p: Panel) -> void:
+	if is_instance_valid(p):
+		p.pivot_offset = p.size * 0.5
+		p.scale = Vector2.ONE
+
+
+## Da vida al retrato del hablante: respiración lenta (scale sutil), balanceo algo
+## más marcado mientras teclea (habla) y un parpadeo/pestañeo ocasional. No mueve la
+## boca (encaja con el arte estático); el que no habla ya queda atenuado.
+func _update_live_portrait(delta: float) -> void:
+	if _active_frame == null or not is_instance_valid(_active_frame):
+		return
+	if (_active_frame.get_meta("tex") as TextureRect).texture == null:
+		return
+	_active_frame.pivot_offset = _active_frame.size * 0.5
+	var freq := 7.5 if _typing else 1.7      # al hablar respira/balancea más rápido
+	var amp := 0.018 if _typing else 0.011
+	var breath := 1.0 + amp * sin(_live_t * freq)
+	# Parpadeo: compresión vertical rápida cada pocos segundos.
+	_blink_t -= delta
+	if _blink_t <= 0.0:
+		_blink_t = randf_range(2.6, 5.6)
+		_blink = 1.0
+	if _blink > 0.0:
+		_blink = maxf(0.0, _blink - delta * 7.0)
+	var squash := 1.0 - 0.05 * _blink
+	_active_frame.scale = Vector2(breath, breath * squash)
 
 
 func _dim_portrait(p: Panel, dim: bool) -> void:
@@ -703,7 +723,6 @@ func _apply_nameplate_border(color: Color) -> void:
 #  FIN
 # ---------------------------------------------------------------------------
 func _finish() -> void:
-	Global.stop_speaking()   # corta cualquier voz TTS en curso
 	var result := {"clue": null, "flag": "", "false_count": 0}
 	if _dialogue.has("clue"):
 		var cl: Dictionary = _dialogue.clue
@@ -722,8 +741,98 @@ func _finish() -> void:
 	if _dialogue.has("flag"):
 		Global.set_flag(String(_dialogue.flag), true)
 		result.flag = _dialogue.flag
+	# La prueba se ve un instante ANTES de cerrar la escena: si la pista recién
+	# descubierta tiene foto de objeto, se enseña la polaroid. Las falsas no la
+	# lucen (se descartan; el mapa ya avisa de ellas).
+	if result.clue != null and not (result.clue as Dictionary).get("false", false):
+		await _flash_clue_photo(result.clue)
 	var t := create_tween()
 	t.tween_property(self, "modulate:a", 0.0, 0.3)
 	await t.finished
 	finished.emit(result)
 	queue_free()
+
+
+## Destello de la prueba descubierta: la polaroid entra creciendo sobre la escena
+## atenuada, se sostiene un momento y se va. Si la pista no tiene foto (concepto
+## abstracto, deducción...) no hace nada y la escena cierra como siempre.
+func _flash_clue_photo(clue: Dictionary) -> void:
+	var path := Global.clue_image(String(clue.get("title", "")))
+	if path == "":
+		return
+	var tex: Texture2D = load(path)
+	if tex == null:
+		return
+
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.z_index = 200
+	add_child(layer)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.6)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(dim)
+
+	var card := Panel.new()
+	card.size = CLUE_CARD
+	# Centrada en horizontal, pero alta: así no pisa el cuadro de diálogo de abajo.
+	var vp := get_viewport_rect().size
+	card.position = Vector2((vp.x - CLUE_CARD.x) * 0.5, vp.y * 0.40 - CLUE_CARD.y * 0.5)
+	card.pivot_offset = CLUE_CARD * 0.5
+	card.rotation_degrees = -2.5
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.96, 0.90, 0.78)   # crema de polaroid, como en el tablero
+	sb.set_corner_radius_all(3)
+	sb.shadow_color = Color(0, 0, 0, 0.7)
+	sb.shadow_size = 20
+	sb.shadow_offset = Vector2(4, 9)
+	card.add_theme_stylebox_override("panel", sb)
+	layer.add_child(card)
+
+	var photo := Panel.new()
+	photo.clip_contents = true
+	photo.position = Vector2(12, 12)
+	photo.size = Vector2(CLUE_CARD.x - 24, CLUE_CARD.y - 62)
+	photo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pbg := StyleBoxFlat.new()
+	pbg.bg_color = Color(0.06, 0.06, 0.07)
+	photo.add_theme_stylebox_override("panel", pbg)
+	card.add_child(photo)
+
+	var img := TextureRect.new()
+	img.set_anchors_preset(Control.PRESET_FULL_RECT)
+	img.texture = tex
+	img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	img.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	photo.add_child(img)
+
+	var cap := Label.new()
+	cap.text = Global.loc(String(clue.get("title", "")))
+	cap.horizontal_alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	cap.clip_text = true
+	cap.position = Vector2(10, CLUE_CARD.y - 44)
+	cap.size = Vector2(CLUE_CARD.x - 20, 32)
+	cap.add_theme_font_size_override("font_size", 18)
+	cap.add_theme_color_override("font_color", Color(0.14, 0.11, 0.08))
+	cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(cap)
+
+	layer.modulate.a = 0.0
+	card.scale = Vector2(0.86, 0.86)
+	Global.play_sfx(Global.SFX_NOTE, -4.0)
+	var tin := create_tween()
+	tin.set_parallel(true)
+	tin.tween_property(layer, "modulate:a", 1.0, 0.22)
+	tin.tween_property(card, "scale", Vector2.ONE, 0.3) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await tin.finished
+	await get_tree().create_timer(CLUE_HOLD).timeout
+	var tout := create_tween()
+	tout.tween_property(layer, "modulate:a", 0.0, 0.28)
+	await tout.finished
+	layer.queue_free()

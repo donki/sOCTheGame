@@ -190,6 +190,7 @@ func _build_fx() -> void:
 	_caption.offset_top = -108
 	_caption.offset_bottom = -70
 	Global.style_tagline(_caption, 34)
+	_caption.add_theme_font_override("font", Global.font_title)   # misma letra que "sOC"
 	_caption.add_theme_color_override("font_color", Global.COL_WARM)
 	_caption.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
 	_caption.add_theme_constant_override("outline_size", 6)

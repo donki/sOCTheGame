@@ -36,6 +36,10 @@ var _toast: Panel
 var _toast_label: Label
 var _reveal: Panel
 
+# Lupa que sigue al puntero + destello que parpadea al pasar sobre una zona.
+var _lens: Control
+var _glint: Control
+
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -155,6 +159,9 @@ func _build_ui() -> void:
 	_style_text(_toast_label, 17, Global.COL_TEXT)
 	_toast.add_child(_toast_label)
 
+	# Lupa (por encima de todo) — la última, para que quede sobre hotspots y carteles.
+	_build_lens()
+
 
 func _add_hotspot(h: Dictionary) -> void:
 	var pos: Vector2 = h.get("pos", Vector2(0.5, 0.5))
@@ -185,9 +192,9 @@ func _add_hotspot(h: Dictionary) -> void:
 	b.set_meta("text", String(h.get("text", "")))
 	b.set_meta("r", r)
 	b.pressed.connect(_on_hotspot.bind(b))
-	# Invisible al inicio (se busca de verdad, revelado por tiempo). En el TUTORIAL
-	# (show_marks) se ven desde el principio para enseñar la mecánica.
-	b.modulate.a = 1.0 if bool(_data.get("show_marks", false)) else 0.0
+	# El punto empieza al 10% de opacidad (90% transp.); a 1 min sube a 15% y a 2 min a 20%.
+	# En el TUTORIAL (show_marks) se ven al 100% para enseñar la mecánica.
+	b.modulate.a = 1.0 if bool(_data.get("show_marks", false)) else 0.10
 	add_child(b)
 	# Punto sutil y brillante en el centro (marca la zona sin destacar como un "?").
 	var dot := Panel.new()
@@ -255,7 +262,90 @@ func _on_wrong(b: Button) -> void:
 	_show_toast(String(b.get_meta("text", "Nada util aqui.")))
 
 
+## Lupa: círculo de cristal con aro de latón + mango, que hace de puntero. En su
+## centro, un destello que parpadea (oculto salvo cuando se pasa sobre una zona).
+func _build_lens() -> void:
+	var D := 156.0
+	_lens = Control.new()
+	_lens.custom_minimum_size = Vector2(D, D)
+	_lens.size = Vector2(D, D)
+	_lens.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_lens.z_index = 60
+	add_child(_lens)
+
+	# Mango (asa) saliendo hacia abajo-derecha (se dibuja primero, tras el cristal).
+	var handle := Panel.new()
+	handle.size = Vector2(64, 16)
+	handle.position = Vector2(D * 0.80, D * 0.80)
+	handle.rotation = deg_to_rad(45)
+	handle.pivot_offset = Vector2(0, 8)
+	handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hs := StyleBoxFlat.new()
+	hs.bg_color = Color(0.28, 0.20, 0.11)
+	hs.set_corner_radius_all(7)
+	hs.set_border_width_all(2)
+	hs.border_color = Color(0.85, 0.80, 0.68, 0.9)
+	handle.add_theme_stylebox_override("panel", hs)
+	_lens.add_child(handle)
+
+	# Cristal: círculo casi transparente con aro grueso de latón.
+	var glass := Panel.new()
+	glass.size = Vector2(D, D)
+	glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var gs := StyleBoxFlat.new()
+	gs.bg_color = Color(0.78, 0.86, 0.96, 0.06)
+	gs.set_corner_radius_all(int(D * 0.5))
+	gs.set_border_width_all(6)
+	gs.border_color = Color(0.86, 0.80, 0.66, 0.95)
+	gs.shadow_color = Color(0, 0, 0, 0.5)
+	gs.shadow_size = 8
+	glass.add_theme_stylebox_override("panel", gs)
+	_lens.add_child(glass)
+
+	# Destello en el centro (parpadeo suave en bucle; visible solo sobre una zona).
+	_glint = Panel.new()
+	var gd := 28.0
+	_glint.size = Vector2(gd, gd)
+	_glint.position = Vector2(D * 0.5 - gd * 0.5, D * 0.5 - gd * 0.5)
+	_glint.pivot_offset = Vector2(gd * 0.5, gd * 0.5)
+	_glint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var gls := StyleBoxFlat.new()
+	gls.bg_color = Color(1.0, 0.96, 0.78, 0.95)
+	gls.set_corner_radius_all(int(gd * 0.5))
+	gls.shadow_color = Color(1.0, 0.90, 0.60, 0.8)
+	gls.shadow_size = 14
+	_glint.add_theme_stylebox_override("panel", gls)
+	_glint.visible = false
+	_lens.add_child(_glint)
+	var tw := create_tween().set_loops()
+	tw.tween_property(_glint, "modulate:a", 0.25, 0.55).set_trans(Tween.TRANS_SINE)
+	tw.parallel().tween_property(_glint, "scale", Vector2(0.7, 0.7), 0.55).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(_glint, "modulate:a", 1.0, 0.55).set_trans(Tween.TRANS_SINE)
+	tw.parallel().tween_property(_glint, "scale", Vector2(1.12, 1.12), 0.55).set_trans(Tween.TRANS_SINE)
+
+	# La lupa ES el puntero: se oculta el cursor del sistema mientras dura la escena.
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+
+
+## ¿El puntero está sobre alguna zona (hotspot) aún investigable?
+func _over_hotspot(m: Vector2) -> bool:
+	for b in _hotspots:
+		if is_instance_valid(b) and not b.disabled and b.get_global_rect().has_point(m):
+			return true
+	return false
+
+
+func _exit_tree() -> void:
+	# Por si se cierra la escena por otra vía: devolver el cursor del sistema.
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
 func _process(delta: float) -> void:
+	# La lupa sigue al puntero y su destello se enciende sobre una zona.
+	if _lens != null:
+		var m := get_global_mouse_position()
+		_lens.position = m - _lens.size * 0.5
+		_glint.visible = not _done and _over_hotspot(m)
 	# Revelado gradual por tiempo (solo si aún no se ha encontrado).
 	if _done:
 		return
@@ -359,6 +449,7 @@ func _show_reveal() -> void:
 
 
 func _finish() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)   # recupera el cursor del sistema
 	var result := {"clue": null, "flag": "", "false_count": 0}
 	if _data.has("clue"):
 		var cl: Dictionary = _data.clue

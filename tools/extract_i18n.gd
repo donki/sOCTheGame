@@ -1,5 +1,6 @@
 extends Node
 func _ready() -> void:
+	Global.tool_mode = true   # no persistir: este recorrido NO es una partida
 	var strings := {}
 	var add := func(s):
 		if s is String and String(s).strip_edges() != "":

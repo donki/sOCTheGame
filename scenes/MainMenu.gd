@@ -244,6 +244,7 @@ func _build_center() -> void:
 	tagline.text = Global.loc("La ciudad esconde algo bajo la lluvia.")
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	Global.style_tagline(tagline, 33)
+	tagline.add_theme_font_override("font", Global.font_title)   # misma letra que "sOC"
 	tagline.add_theme_color_override("font_color", Global.COL_WARM)
 	tagline.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	tagline.add_theme_constant_override("outline_size", 5)
@@ -373,6 +374,24 @@ func _build_options_overlay() -> void:
 	vb.add_child(_slider_row("Musica", "music_volume"))
 	vb.add_child(_slider_row("Efectos", "sfx_volume"))
 
+	# Tamaño de la letra de los diálogos (accesibilidad): 0.8x – 1.6x.
+	var dsize_row := HBoxContainer.new()
+	dsize_row.add_theme_constant_override("separation", 12)
+	var dsize_label := Label.new()
+	dsize_label.text = Global.loc("Tamaño del diálogo")
+	dsize_label.custom_minimum_size = Vector2(150, 0)
+	dsize_label.add_theme_color_override("font_color", Global.COL_TEXT)
+	dsize_row.add_child(dsize_label)
+	var dsize := HSlider.new()
+	dsize.min_value = 0.8
+	dsize.max_value = 1.6
+	dsize.step = 0.1
+	dsize.value = float(Global.settings.get("dialogue_size", 1.0))
+	dsize.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dsize.value_changed.connect(func(v: float) -> void: Global.set_setting("dialogue_size", v))
+	dsize_row.add_child(dsize)
+	vb.add_child(dsize_row)
+
 	if OS.get_name() in ["Windows", "Linux", "macOS"]:
 		var fs_row := HBoxContainer.new()
 		var fs_label := Label.new()
@@ -475,7 +494,8 @@ func _build_about_overlay() -> void:
 		+ "[b]" + Global.loc("Licencia") + "[/b]\n"
 		+ Global.loc("sOC es software libre distribuido bajo licencia MIT. Copyright © 2026 Socratic.") + "\n"
 		+ Global.loc("• Arte: generado por IA (Pollinations · modelos Flux) y reescalado con Real-ESRGAN.") + "\n"
-		+ Global.loc("• Tipografías y efectos de sonido: Kenney (CC0).") + "\n"
+		+ Global.loc("• Tipografías: Play, Audiowide y Orbitron (Google Fonts, OFL).") + "\n"
+		+ Global.loc("• Efectos de sonido: Kenney (CC0).") + "\n"
 		+ Global.loc("• Voces: Microsoft Edge TTS (español) / TTS del sistema del dispositivo.") + "\n"
 		+ Global.loc("• Motor: Godot Engine (MIT).") + "\n\n"
 		+ "[b]" + Global.loc("Aviso legal") + "[/b]\n"
