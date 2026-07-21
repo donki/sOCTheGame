@@ -866,7 +866,7 @@ func _fly_clue_to_notebook(is_false: bool, delay: float = 0.0) -> void:
 	add_child(card)
 	# Aterriza CENTRADO sobre el botón de la libreta (rect real, no la posición cruda),
 	# y un poco más arriba para que quede claramente ENCIMA del botón, no debajo-derecha.
-	var target := _nb_btn.get_global_rect().get_center() - cs * 0.5 - Vector2(0.0, cs.y * 0.18)
+	var target := _nb_btn.get_global_rect().get_center() - cs * 0.5 - Vector2(42.0, cs.y * 0.18)
 	var t := create_tween()
 	if delay > 0.0:
 		t.tween_interval(delay)
