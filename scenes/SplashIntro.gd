@@ -80,18 +80,18 @@ func _process(delta: float) -> void:
 		_light_times.pop_front()
 		_lightning()
 
-	# Leyenda entra ~1s y empieza a salir a ~7.6s (deja paso al titulo)
-	var cap_target := 1.0 if (_t > 1.0 and _t < 7.6) else 0.0
+	# La frase entra PRIMERO (~1s) y se queda visible (debajo del título).
+	var cap_target := 1.0 if _t > 1.0 else 0.0
 	_caption.modulate.a = move_toward(_caption.modulate.a, cap_target, delta * 1.4)
 
-	# --- CIERRE: a ~8s campana grave + ultimo relampago + aparece el titulo;
-	#     a ~9.2s fundido a negro que encadena con el menu. ---
+	# --- CIERRE: a ~8s campana grave + ultimo relampago; el título va apareciendo. ---
 	if not _deep_done and _t >= 8.0:
 		_deep_done = true
 		_toll_deep()
 		_lightning()
-	if _t >= 8.0:
-		_title.modulate.a = move_toward(_title.modulate.a, 1.0, delta * 1.5)
+	# El título "sOC" aparece DESPUÉS de la frase: su opacidad sube de 0% a 100% en
+	# 10 segundos (empieza a los 2s, lleno a los 12s).
+	_title.modulate.a = clampf((_t - 2.0) / 10.0, 0.0, 1.0)
 	# Tras mantener el titulo ~5s: relampago + trueno de cierre y fundido a negro.
 	if not _end_thunder_done and _t >= 13.9:
 		_end_thunder_done = true
@@ -186,9 +186,10 @@ func _build_fx() -> void:
 	_caption = Label.new()
 	_caption.text = Global.loc("La ciudad esconde algo bajo la lluvia.")
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_caption.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_caption.offset_top = -108
-	_caption.offset_bottom = -70
+	# Justo DEBAJO del título "sOC" (que va en offset_top 244..320).
+	_caption.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_caption.offset_top = 332
+	_caption.offset_bottom = 384
 	Global.style_tagline(_caption, 34)
 	_caption.add_theme_font_override("font", Global.font_title)   # misma letra que "sOC"
 	_caption.add_theme_color_override("font_color", Global.COL_WARM)

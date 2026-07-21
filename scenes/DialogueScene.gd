@@ -576,9 +576,9 @@ func _update_live_portrait(delta: float) -> void:
 	if (_active_frame.get_meta("tex") as TextureRect).texture == null:
 		return
 	_active_frame.pivot_offset = _active_frame.size * 0.5
-	var freq := 7.5 if _typing else 1.7      # al hablar respira/balancea más rápido
-	var amp := 0.018 if _typing else 0.011
-	var breath := 1.0 + amp * sin(_live_t * freq)
+	# Solo respiración lenta y constante (sin balanceo rápido al hablar: se veía como
+	# una vibración).
+	var breath := 1.0 + 0.011 * sin(_live_t * 1.7)
 	# Parpadeo: compresión vertical rápida cada pocos segundos.
 	_blink_t -= delta
 	if _blink_t <= 0.0:

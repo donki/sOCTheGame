@@ -290,7 +290,7 @@ func _update_objective() -> void:
 	elif not Global.has_flag(Story.complete_flag()):
 		txt = Global.loc("▸ Ya tienes las pistas. Ve al lugar clave del caso.")
 	elif not Story.links().is_empty() and not Global.has_flag(Story.links_flag()):
-		txt = Global.loc("▸ Reconstruye el caso en el tablero (N): une pista, persona y zona.")
+		txt = Global.loc("▸ Reconstruye el caso en el tablero: une pista, persona y zona.")
 	elif not Global.has_flag(Story.end_flag()):
 		txt = Global.loc("▸ Cierra el caso: informa en la comisaría.")
 	elif Story.is_last_chapter():

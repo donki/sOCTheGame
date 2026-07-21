@@ -265,7 +265,7 @@ func _on_wrong(b: Button) -> void:
 ## Lupa: círculo de cristal con aro de latón + mango, que hace de puntero. En su
 ## centro, un destello que parpadea (oculto salvo cuando se pasa sobre una zona).
 func _build_lens() -> void:
-	var D := 108.0
+	var D := 27.0
 	_lens = Control.new()
 	_lens.custom_minimum_size = Vector2(D, D)
 	_lens.size = Vector2(D, D)
@@ -275,7 +275,7 @@ func _build_lens() -> void:
 
 	# Mango (asa) saliendo hacia abajo-derecha (se dibuja primero, tras el cristal).
 	var handle := Panel.new()
-	handle.size = Vector2(46, 13)
+	handle.size = Vector2(12, 5)
 	handle.position = Vector2(D * 0.80, D * 0.80)
 	handle.rotation = deg_to_rad(45)
 	handle.pivot_offset = Vector2(0, 8)
@@ -295,7 +295,7 @@ func _build_lens() -> void:
 	var gs := StyleBoxFlat.new()
 	gs.bg_color = Color(0.78, 0.86, 0.96, 0.06)
 	gs.set_corner_radius_all(int(D * 0.5))
-	gs.set_border_width_all(6)
+	gs.set_border_width_all(2)
 	gs.border_color = Color(0.86, 0.80, 0.66, 0.95)
 	gs.shadow_color = Color(0, 0, 0, 0.5)
 	gs.shadow_size = 8
@@ -304,7 +304,7 @@ func _build_lens() -> void:
 
 	# Destello en el centro (parpadeo suave en bucle; visible solo sobre una zona).
 	_glint = Panel.new()
-	var gd := 20.0
+	var gd := 6.0
 	_glint.size = Vector2(gd, gd)
 	_glint.position = Vector2(D * 0.5 - gd * 0.5, D * 0.5 - gd * 0.5)
 	_glint.pivot_offset = Vector2(gd * 0.5, gd * 0.5)

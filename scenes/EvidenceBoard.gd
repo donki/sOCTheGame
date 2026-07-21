@@ -514,6 +514,30 @@ func _thread_nearest(pins: Array) -> PackedVector2Array:
 # ---------------------------------------------------------------------------
 #  MODO TRIÁNGULO — composición (personas / pistas / mapa) y lógica de lados
 # ---------------------------------------------------------------------------
+## Conjunto (título -> true) de TODAS las pistas que pertenecen al capítulo actual:
+## las de las tripletas, las "de calle" y las que sueltan las localizaciones. Sirve
+## para que el tablero muestre solo las pistas de este capítulo, no las acumuladas.
+func _chapter_clue_titles() -> Dictionary:
+	var titles := {}
+	for t in _links:
+		if typeof(t) == TYPE_DICTIONARY:
+			var ct := String(t.get("clue", ""))
+			if ct != "":
+				titles[ct] = true
+	for st in Story.street_clues():
+		titles[String(st)] = true
+	for loc in Story.locations():
+		var d: Dictionary = Story.get_dialogue(String(loc.get("id", "")))
+		if d.has("clue") and typeof(d["clue"]) == TYPE_DICTIONARY:
+			titles[String((d["clue"] as Dictionary).get("title", ""))] = true
+		if d.has("clues"):
+			for c in d["clues"]:
+				if typeof(c) == TYPE_DICTIONARY:
+					titles[String(c.get("title", ""))] = true
+	titles.erase("")
+	return titles
+
+
 ## Compone el tablero a 3 bandas: fila de PERSONAS arriba, columna de PISTAS a la
 ## izquierda y el MAPA del barrio a la derecha con un pin por zona. Registra cada
 ## elemento en _nodes con su chincheta (coords del lienzo) para tender los hilos.
@@ -537,14 +561,16 @@ func _populate_triples(content_w: float, region_h: float) -> void:
 			seen[w] = true
 			person_keys.append(w)
 
-	# Pistas verdaderas descubiertas DE ESTE CAPÍTULO (objeto con foto -> polaroid; si
-	# no -> nota). Las pistas se etiquetan con su capítulo al añadirlas; las sin marcar
-	# (saves anteriores a este cambio) se cuentan como del capítulo actual.
+	# Pistas verdaderas descubiertas que PERTENECEN A ESTE CAPÍTULO (objeto con foto ->
+	# polaroid; si no -> nota). Se filtra por el conjunto real de pistas del capítulo
+	# (calculado de Story), no por la etiqueta del save: así no se cuelan las de otros
+	# capítulos aunque la partida sea vieja.
+	var chapter_titles := _chapter_clue_titles()
 	var clue_list: Array = []
 	for c in Global.clues:
 		if typeof(c) != TYPE_DICTIONARY or bool(c.get("false", false)):
 			continue
-		if int(c.get("chapter", Global.chapter)) != Global.chapter:
+		if not chapter_titles.has(String(c.get("title", ""))):
 			continue
 		clue_list.append(c)
 
